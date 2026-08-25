@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="upcoming_alarm_channel_name">即將響鈴</string>
+    <string name="upcoming_alarm_channel_description">在鬧鐘響鈴前 10 分鐘顯示提醒</string>
+    <string name="upcoming_alarm_at_time">將於 %1$s 響鈴</string>
+    <string name="cancel_upcoming_alarm_occurrence">取消本次提醒</string>
+</resources>

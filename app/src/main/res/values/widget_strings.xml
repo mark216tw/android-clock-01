@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="widget_background_style">背景樣式</string>
+    <string name="widget_background_theme">主題色背景</string>
+    <string name="widget_background_transparent">透明背景</string>
+    <string name="widget_theme_black">純黑</string>
+    <string name="widget_theme_white">純白</string>
+    <string name="widget_theme_rainbow">彩虹</string>
+    <string name="widget_time_size">時間字級 (sp)</string>
+    <string name="widget_time_size_invalid">請輸入大於 0 的整數</string>
+</resources>
