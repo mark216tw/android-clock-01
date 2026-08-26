@@ -32,10 +32,12 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Alarm
+import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -188,7 +190,16 @@ private fun WidgetConfigScreen(
                     FilterChip(
                         selected = selectedColor == color,
                         onClick = { selectedColor = color },
-                        label = { Text(androidx.compose.ui.res.stringResource(color.labelRes)) },
+                        label = {
+                            Text(
+                                text = androidx.compose.ui.res.stringResource(color.labelRes),
+                                fontWeight = if (selectedColor == color) {
+                                    FontWeight.Bold
+                                } else {
+                                    FontWeight.Normal
+                                },
+                            )
+                        },
                         leadingIcon = {
                             Box(
                                 Modifier
@@ -197,6 +208,18 @@ private fun WidgetConfigScreen(
                                     .border(1.dp, Color.Gray, CircleShape),
                             )
                         },
+                        trailingIcon = if (selectedColor == color) {
+                            {
+                                Icon(
+                                    Icons.Rounded.Check,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(18.dp),
+                                )
+                            }
+                        } else {
+                            null
+                        },
+                        colors = prominentFilterChipColors(),
                     )
                 }
             }
@@ -217,7 +240,18 @@ private fun WidgetConfigScreen(
                     FilterChip(
                         selected = selectedMode == mode,
                         onClick = { selectedMode = mode },
-                        label = { Text(androidx.compose.ui.res.stringResource(mode.labelRes)) },
+                        label = {
+                            Text(
+                                text = androidx.compose.ui.res.stringResource(mode.labelRes),
+                                fontWeight = if (selectedMode == mode) {
+                                    FontWeight.Bold
+                                } else {
+                                    FontWeight.Normal
+                                },
+                            )
+                        },
+                        leadingIcon = selectedCheckIcon(selectedMode == mode),
+                        colors = prominentFilterChipColors(),
                     )
                 }
             }
@@ -241,8 +275,15 @@ private fun WidgetConfigScreen(
                             androidx.compose.ui.res.stringResource(
                                 R.string.widget_background_theme,
                             ),
+                            fontWeight = if (!transparentBackground) {
+                                FontWeight.Bold
+                            } else {
+                                FontWeight.Normal
+                            },
                         )
                     },
+                    leadingIcon = selectedCheckIcon(!transparentBackground),
+                    colors = prominentFilterChipColors(),
                 )
                 FilterChip(
                     selected = transparentBackground,
@@ -252,8 +293,15 @@ private fun WidgetConfigScreen(
                             androidx.compose.ui.res.stringResource(
                                 R.string.widget_background_transparent,
                             ),
+                            fontWeight = if (transparentBackground) {
+                                FontWeight.Bold
+                            } else {
+                                FontWeight.Normal
+                            },
                         )
                     },
+                    leadingIcon = selectedCheckIcon(transparentBackground),
+                    colors = prominentFilterChipColors(),
                 )
             }
             Spacer(Modifier.height(24.dp))
@@ -277,6 +325,26 @@ private fun WidgetConfigScreen(
             }
         }
     }
+}
+
+@Composable
+private fun prominentFilterChipColors() = FilterChipDefaults.filterChipColors(
+    selectedContainerColor = MaterialTheme.colorScheme.primary,
+    selectedLabelColor = MaterialTheme.colorScheme.onPrimary,
+    selectedLeadingIconColor = MaterialTheme.colorScheme.onPrimary,
+    selectedTrailingIconColor = MaterialTheme.colorScheme.onPrimary,
+)
+
+private fun selectedCheckIcon(selected: Boolean): (@Composable () -> Unit)? = if (selected) {
+    {
+        Icon(
+            Icons.Rounded.Check,
+            contentDescription = null,
+            modifier = Modifier.size(18.dp),
+        )
+    }
+} else {
+    null
 }
 
 @Composable

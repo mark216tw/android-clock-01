@@ -24,11 +24,17 @@ import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.DrawScope
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import kotlin.math.PI
+import kotlin.math.cos
+import kotlin.math.min
+import kotlin.math.sin
 
 internal fun sevenSegmentAspect(text: String): Float {
     val content = text.sumOf { if (it == ':') 18.0 else 56.0 }.toFloat() / 100f
@@ -190,6 +196,105 @@ internal fun GlassClockDisplay(
             }
         }
     }
+}
+
+@Composable
+internal fun AnalogClockDisplay(
+    hour: Int,
+    minute: Int,
+    second: Int?,
+    color: Color,
+    minimal: Boolean,
+    modifier: Modifier = Modifier,
+) {
+    val highContrast = color == Color.White
+    val faceColor = if (highContrast) Color(0xD9191226) else MaterialTheme.colorScheme.surface
+    val dialColor = if (highContrast) Color.White else MaterialTheme.colorScheme.onSurface
+    val secondColor = Color(0xFFFF6B6B)
+
+    Canvas(modifier) {
+        val center = Offset(size.width / 2f, size.height / 2f)
+        val radius = min(size.width, size.height) * 0.46f
+        val secondValue = second?.toFloat() ?: 0f
+
+        if (minimal) {
+            drawCircle(
+                color = color.copy(alpha = 0.34f),
+                radius = radius,
+                center = center,
+                style = Stroke(width = radius * 0.025f),
+            )
+        } else {
+            drawCircle(color = faceColor, radius = radius, center = center)
+            drawCircle(
+                color = color.copy(alpha = 0.58f),
+                radius = radius,
+                center = center,
+                style = Stroke(width = radius * 0.035f),
+            )
+        }
+
+        repeat(if (minimal) 12 else 60) { index ->
+            val tickIndex = if (minimal) index * 5 else index
+            val angle = tickIndex * 6f
+            val major = tickIndex % 5 == 0
+            if (minimal) {
+                drawCircle(
+                    color = if (index % 3 == 0) color else color.copy(alpha = 0.55f),
+                    radius = if (index % 3 == 0) radius * 0.035f else radius * 0.022f,
+                    center = clockPoint(center, radius * 0.86f, angle),
+                )
+            } else {
+                drawLine(
+                    color = dialColor.copy(alpha = if (major) 0.88f else 0.34f),
+                    start = clockPoint(center, radius * if (major) 0.78f else 0.86f, angle),
+                    end = clockPoint(center, radius * 0.92f, angle),
+                    strokeWidth = radius * if (major) 0.035f else 0.014f,
+                    cap = StrokeCap.Round,
+                )
+            }
+        }
+
+        val hourAngle = ((hour % 12) + minute / 60f + secondValue / 3600f) * 30f
+        val minuteAngle = (minute + secondValue / 60f) * 6f
+        drawLine(
+            color = dialColor,
+            start = center,
+            end = clockPoint(center, radius * 0.50f, hourAngle),
+            strokeWidth = radius * if (minimal) 0.085f else 0.095f,
+            cap = StrokeCap.Round,
+        )
+        drawLine(
+            color = color,
+            start = center,
+            end = clockPoint(center, radius * 0.73f, minuteAngle),
+            strokeWidth = radius * if (minimal) 0.045f else 0.060f,
+            cap = StrokeCap.Round,
+        )
+        if (second != null) {
+            val secondAngle = secondValue * 6f
+            drawLine(
+                color = secondColor,
+                start = clockPoint(center, radius * 0.13f, secondAngle + 180f),
+                end = clockPoint(center, radius * 0.82f, secondAngle),
+                strokeWidth = radius * 0.025f,
+                cap = StrokeCap.Round,
+            )
+        }
+        drawCircle(
+            color = if (second != null) secondColor else color,
+            radius = radius * 0.065f,
+            center = center,
+        )
+    }
+}
+
+private fun clockPoint(center: Offset, length: Float, degrees: Float): Offset {
+    val radians = (degrees - 90f) * PI.toFloat() / 180f
+    return Offset(
+        x = center.x + cos(radians) * length,
+        y = center.y + sin(radians) * length,
+    )
 }
 
 @Composable

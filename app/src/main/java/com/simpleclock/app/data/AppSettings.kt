@@ -25,8 +25,10 @@ enum class ClockStyle(@StringRes val labelRes: Int) {
     LED(R.string.style_led),
     LCD(R.string.style_lcd),
     NEON(R.string.style_neon),
-    GLASS(R.string.style_glass),
     OUTLINE(R.string.style_outline),
+    GLASS(R.string.style_glass),
+    ANALOG_CLASSIC(R.string.style_analog_classic),
+    ANALOG_MINIMAL(R.string.style_analog_minimal),
 }
 
 enum class TimeFormat {
