@@ -205,6 +205,7 @@ internal fun AnalogClockDisplay(
     second: Int?,
     color: Color,
     minimal: Boolean,
+    swissRailway: Boolean,
     modifier: Modifier = Modifier,
 ) {
     val highContrast = color == Color.White
@@ -216,6 +217,17 @@ internal fun AnalogClockDisplay(
         val center = Offset(size.width / 2f, size.height / 2f)
         val radius = min(size.width, size.height) * 0.46f
         val secondValue = second?.toFloat() ?: 0f
+
+        if (swissRailway) {
+            drawSwissRailwayClock(
+                center = center,
+                radius = radius,
+                hour = hour,
+                minute = minute,
+                second = second,
+            )
+            return@Canvas
+        }
 
         if (minimal) {
             drawCircle(
@@ -286,6 +298,70 @@ internal fun AnalogClockDisplay(
             radius = radius * 0.065f,
             center = center,
         )
+    }
+}
+
+private fun DrawScope.drawSwissRailwayClock(
+    center: Offset,
+    radius: Float,
+    hour: Int,
+    minute: Int,
+    second: Int?,
+) {
+    val frameDark = Color(0xFF076B6E)
+    val railwayTeal = Color(0xFF008C8C)
+    val innerRim = Color(0xFFC9CED0)
+    val secondRed = Color(0xFFDF2434)
+    val secondValue = second?.toFloat() ?: 0f
+
+    drawCircle(color = frameDark, radius = radius, center = center)
+    drawCircle(color = railwayTeal, radius = radius * 0.965f, center = center)
+    drawCircle(color = innerRim, radius = radius * 0.885f, center = center)
+    drawCircle(color = Color(0xFFFAFAF8), radius = radius * 0.865f, center = center)
+
+    repeat(60) { index ->
+        val major = index % 5 == 0
+        val angle = index * 6f
+        drawLine(
+            color = railwayTeal,
+            start = clockPoint(center, radius * if (major) 0.64f else 0.74f, angle),
+            end = clockPoint(center, radius * 0.81f, angle),
+            strokeWidth = radius * if (major) 0.080f else 0.026f,
+            cap = StrokeCap.Butt,
+        )
+    }
+
+    val hourAngle = ((hour % 12) + minute / 60f + secondValue / 3600f) * 30f
+    val minuteAngle = (minute + secondValue / 60f) * 6f
+    drawLine(
+        color = railwayTeal,
+        start = clockPoint(center, radius * 0.11f, hourAngle + 180f),
+        end = clockPoint(center, radius * 0.48f, hourAngle),
+        strokeWidth = radius * 0.105f,
+        cap = StrokeCap.Butt,
+    )
+    drawLine(
+        color = railwayTeal,
+        start = clockPoint(center, radius * 0.10f, minuteAngle + 180f),
+        end = clockPoint(center, radius * 0.69f, minuteAngle),
+        strokeWidth = radius * 0.075f,
+        cap = StrokeCap.Butt,
+    )
+
+    if (second != null) {
+        val secondAngle = secondValue * 6f
+        val discCenter = clockPoint(center, radius * 0.68f, secondAngle)
+        drawLine(
+            color = secondRed,
+            start = clockPoint(center, radius * 0.14f, secondAngle + 180f),
+            end = discCenter,
+            strokeWidth = radius * 0.024f,
+            cap = StrokeCap.Round,
+        )
+        drawCircle(color = secondRed, radius = radius * 0.075f, center = discCenter)
+        drawCircle(color = secondRed, radius = radius * 0.050f, center = center)
+    } else {
+        drawCircle(color = railwayTeal, radius = radius * 0.050f, center = center)
     }
 }
 

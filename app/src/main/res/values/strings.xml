@@ -47,6 +47,7 @@
     <string name="style_glass">玻璃卡片</string>
     <string name="style_analog_classic">經典指針</string>
     <string name="style_analog_minimal">極簡指針</string>
+    <string name="style_swiss_railway">瑞士國鐵</string>
     <string name="style_outline">鏤空</string>
     <string name="style_lcd">液晶</string>
     <string name="widget_settings">小工具設定</string>

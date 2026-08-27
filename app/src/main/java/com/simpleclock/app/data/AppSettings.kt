@@ -29,6 +29,7 @@ enum class ClockStyle(@StringRes val labelRes: Int) {
     GLASS(R.string.style_glass),
     ANALOG_CLASSIC(R.string.style_analog_classic),
     ANALOG_MINIMAL(R.string.style_analog_minimal),
+    SWISS_RAILWAY(R.string.style_swiss_railway),
 }
 
 enum class TimeFormat {

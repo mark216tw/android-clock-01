@@ -337,7 +337,9 @@ internal fun ClockStyleDisplay(
                 .width((size * sevenSegmentAspect(displayText)).dp)
                 .height(size.dp),
         )
-        ClockStyle.ANALOG_CLASSIC, ClockStyle.ANALOG_MINIMAL -> {
+        ClockStyle.ANALOG_CLASSIC,
+        ClockStyle.ANALOG_MINIMAL,
+        ClockStyle.SWISS_RAILWAY -> {
             val parts = displayText.split(':')
             AnalogClockDisplay(
                 hour = parts.getOrNull(0)?.toIntOrNull() ?: 0,
@@ -345,6 +347,7 @@ internal fun ClockStyleDisplay(
                 second = analogSecond,
                 color = color,
                 minimal = style == ClockStyle.ANALOG_MINIMAL,
+                swissRailway = style == ClockStyle.SWISS_RAILWAY,
                 modifier = Modifier
                     .width(size.dp)
                     .height(size.dp),
@@ -360,7 +363,8 @@ internal fun ClockStyleDisplay(
                 ClockStyle.LCD,
                 ClockStyle.GLASS,
                 ClockStyle.ANALOG_CLASSIC,
-                ClockStyle.ANALOG_MINIMAL -> FontWeight.Normal
+                ClockStyle.ANALOG_MINIMAL,
+                ClockStyle.SWISS_RAILWAY -> FontWeight.Normal
             }
             val annotatedText = buildAnnotatedString {
                 displayText.forEach { character ->
@@ -406,13 +410,17 @@ internal fun ClockStyleDisplay(
 private fun displayAspect(text: String, style: ClockStyle): Float = when (style) {
     ClockStyle.LED, ClockStyle.LCD -> sevenSegmentAspect(text)
     ClockStyle.GLASS -> glassClockAspect(text)
-    ClockStyle.ANALOG_CLASSIC, ClockStyle.ANALOG_MINIMAL -> 1f
+    ClockStyle.ANALOG_CLASSIC,
+    ClockStyle.ANALOG_MINIMAL,
+    ClockStyle.SWISS_RAILWAY -> 1f
     ClockStyle.NEON -> text.length * 0.64f
     else -> text.length * 0.56f
 }
 
 private fun ClockStyle.isAnalog(): Boolean =
-    this == ClockStyle.ANALOG_CLASSIC || this == ClockStyle.ANALOG_MINIMAL
+    this == ClockStyle.ANALOG_CLASSIC ||
+        this == ClockStyle.ANALOG_MINIMAL ||
+        this == ClockStyle.SWISS_RAILWAY
 
 @Composable
 private fun ClockAction(
