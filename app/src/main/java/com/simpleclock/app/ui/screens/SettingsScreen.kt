@@ -19,10 +19,13 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
+import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material.icons.rounded.CheckCircle
+import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material.icons.rounded.Refresh
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -52,6 +55,7 @@ import com.simpleclock.app.data.AppSettings
 import com.simpleclock.app.data.AppThemeColor
 import com.simpleclock.app.data.AppThemeMode
 import com.simpleclock.app.data.ClockStyle
+import com.simpleclock.app.data.ScreenOrientation
 import com.simpleclock.app.data.TimeFormat
 import com.simpleclock.app.ui.theme.previewColors
 
@@ -108,6 +112,15 @@ fun SettingsScreen(
                 }
             }
             item {
+                SettingsSection(title = stringResource(R.string.orientation_title)) {
+                    ChoiceRow(
+                        choices = ScreenOrientation.entries.map { it to stringResource(it.labelRes) },
+                        selected = settings.screenOrientation,
+                        onSelected = { value -> onUpdate { it.copy(screenOrientation = value) } },
+                    )
+                }
+            }
+            item {
                 SettingsSection(title = stringResource(R.string.use_24_hour)) {
                     ChoiceRow(
                         choices = listOf(
@@ -126,6 +139,43 @@ fun SettingsScreen(
                         choices = AppThemeMode.entries.map { it to stringResource(it.labelRes) },
                         selected = settings.themeMode,
                         onSelected = { value -> onUpdate { it.copy(themeMode = value) } },
+                    )
+                }
+            }
+            item {
+                SettingsSection(title = stringResource(R.string.clock_font_size)) {
+                    Text(
+                        stringResource(R.string.clock_font_size_portrait),
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontWeight = FontWeight.SemiBold,
+                    )
+                    ChoiceRow(
+                        choices = listOf(
+                            1 to "1 (特小)",
+                            2 to "2 (小)",
+                            3 to "3 (標準)",
+                            4 to "4 (大)",
+                            5 to "5 (特大)",
+                        ),
+                        selected = settings.clockFontSizePortrait,
+                        onSelected = { value -> onUpdate { it.copy(clockFontSizePortrait = value) } },
+                    )
+                    Spacer(Modifier.height(8.dp))
+                    Text(
+                        stringResource(R.string.clock_font_size_landscape),
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontWeight = FontWeight.SemiBold,
+                    )
+                    ChoiceRow(
+                        choices = listOf(
+                            1 to "1 (特小)",
+                            2 to "2 (小)",
+                            3 to "3 (標準)",
+                            4 to "4 (大)",
+                            5 to "5 (特大)",
+                        ),
+                        selected = settings.clockFontSizeLandscape,
+                        onSelected = { value -> onUpdate { it.copy(clockFontSizeLandscape = value) } },
                     )
                 }
             }
@@ -150,12 +200,13 @@ fun SettingsScreen(
                                 } else {
                                     null
                                 }
+                                val isSaved = isRandomRainbow && settings.savedRainbowThemes.contains(settings.randomRainbowColors)
                                 ThemeColorCard(
                                     modifier = Modifier.weight(1f),
                                     label = stringResource(color.labelRes),
                                     primary = preview.primary,
                                     background = preview.background,
-                                    rainbow = color == AppThemeColor.RAINBOW || isRandomRainbow,
+                                    rainbow = isRandomRainbow,
                                     gradientColors = gradientColors,
                                     selected = settings.themeColor == color,
                                     onGenerateClick = if (isRandomRainbow) {
@@ -167,6 +218,16 @@ fun SettingsScreen(
                                                     randomRainbowColors = newColors,
                                                 )
                                             }
+                                        }
+                                    } else {
+                                        null
+                                    },
+                                    onSaveClick = if (isRandomRainbow && !isSaved) {
+                                        {
+                                            val updated = settings.savedRainbowThemes.toMutableList().apply {
+                                                add(settings.randomRainbowColors)
+                                            }
+                                            onUpdate { it.copy(savedRainbowThemes = updated) }
                                         }
                                     } else {
                                         null
@@ -183,6 +244,68 @@ fun SettingsScreen(
                             }
                             repeat(2 - rowColors.size) {
                                 Spacer(Modifier.weight(1f))
+                            }
+                        }
+                    }
+                }
+                if (settings.savedRainbowThemes.isNotEmpty()) {
+                    Spacer(Modifier.height(14.dp))
+                    Text(
+                        text = stringResource(R.string.saved_themes),
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                    )
+                    Spacer(Modifier.height(8.dp))
+                    FlowRow(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                    ) {
+                        settings.savedRainbowThemes.forEachIndexed { index, palette ->
+                            val isCurrent = settings.themeColor == AppThemeColor.RANDOM_RAINBOW &&
+                                settings.randomRainbowColors == palette
+                            Surface(
+                                onClick = {
+                                    onUpdate {
+                                        it.copy(
+                                            themeColor = AppThemeColor.RANDOM_RAINBOW,
+                                            randomRainbowColors = palette,
+                                        )
+                                    }
+                                },
+                                shape = RoundedCornerShape(12.dp),
+                                border = if (isCurrent) BorderStroke(2.5.dp, MaterialTheme.colorScheme.primary) else null,
+                                shadowElevation = if (isCurrent) 4.dp else 1.dp,
+                                color = Color.Transparent,
+                            ) {
+                                Row(
+                                    modifier = Modifier
+                                        .background(Brush.linearGradient(palette.map { Color(it) }))
+                                        .padding(start = 12.dp, end = 4.dp, top = 6.dp, bottom = 6.dp),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(4.dp),
+                                ) {
+                                    Text(
+                                        text = if (isCurrent) "✓ 配色 ${index + 1}" else "配色 ${index + 1}",
+                                        color = Color.White,
+                                        style = MaterialTheme.typography.labelMedium,
+                                        fontWeight = FontWeight.Bold,
+                                    )
+                                    IconButton(
+                                        onClick = {
+                                            val updated = settings.savedRainbowThemes.toMutableList().apply { removeAt(index) }
+                                            onUpdate { it.copy(savedRainbowThemes = updated) }
+                                        },
+                                        modifier = Modifier.size(22.dp),
+                                    ) {
+                                        Icon(
+                                            Icons.Rounded.Close,
+                                            contentDescription = stringResource(R.string.delete_saved_theme),
+                                            tint = Color.White.copy(alpha = 0.85f),
+                                            modifier = Modifier.size(14.dp),
+                                        )
+                                    }
+                                }
                             }
                         }
                     }
@@ -289,6 +412,7 @@ private fun ThemeColorCard(
     selected: Boolean,
     gradientColors: List<Color>? = null,
     onGenerateClick: (() -> Unit)? = null,
+    onSaveClick: (() -> Unit)? = null,
     onClick: () -> Unit,
 ) {
     Card(
@@ -321,41 +445,73 @@ private fun ThemeColorCard(
                         Modifier
                     },
                 )
-                .padding(12.dp),
+                .padding(10.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             val contentColor = if (rainbow) Color.White else primary
             Text("10:08", color = contentColor, fontWeight = FontWeight.Black)
-            Spacer(Modifier.height(6.dp))
+            Spacer(Modifier.height(4.dp))
             Text(
                 text = if (selected) "✓ $label" else label,
                 color = contentColor,
                 style = MaterialTheme.typography.labelMedium,
                 fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal,
             )
-            if (onGenerateClick != null) {
+            if (onGenerateClick != null || onSaveClick != null) {
                 Spacer(Modifier.height(6.dp))
-                Surface(
-                    onClick = onGenerateClick,
-                    shape = CircleShape,
-                    color = Color.Black.copy(alpha = 0.35f),
-                    contentColor = Color.White,
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    Row(
-                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(4.dp),
-                    ) {
-                        Icon(
-                            Icons.Rounded.Refresh,
-                            contentDescription = stringResource(R.string.generate_random_theme),
-                            modifier = Modifier.size(13.dp),
-                        )
-                        Text(
-                            text = stringResource(R.string.generate_random_theme),
-                            style = MaterialTheme.typography.labelSmall,
-                            fontWeight = FontWeight.Bold,
-                        )
+                    if (onGenerateClick != null) {
+                        Surface(
+                            onClick = onGenerateClick,
+                            shape = CircleShape,
+                            color = Color.Black.copy(alpha = 0.38f),
+                            contentColor = Color.White,
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(horizontal = 7.dp, vertical = 3.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(3.dp),
+                            ) {
+                                Icon(
+                                    Icons.Rounded.Refresh,
+                                    contentDescription = stringResource(R.string.generate_random_theme),
+                                    modifier = Modifier.size(12.dp),
+                                )
+                                Text(
+                                    text = stringResource(R.string.generate_random_theme),
+                                    style = MaterialTheme.typography.labelSmall,
+                                    fontWeight = FontWeight.Bold,
+                                )
+                            }
+                        }
+                    }
+                    if (onSaveClick != null) {
+                        Surface(
+                            onClick = onSaveClick,
+                            shape = CircleShape,
+                            color = Color.Black.copy(alpha = 0.38f),
+                            contentColor = Color.White,
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(horizontal = 7.dp, vertical = 3.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(3.dp),
+                            ) {
+                                Icon(
+                                    Icons.Rounded.Add,
+                                    contentDescription = stringResource(R.string.save_lucky_theme),
+                                    modifier = Modifier.size(12.dp),
+                                )
+                                Text(
+                                    text = "儲存",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    fontWeight = FontWeight.Bold,
+                                )
+                            }
+                        }
                     }
                 }
             }

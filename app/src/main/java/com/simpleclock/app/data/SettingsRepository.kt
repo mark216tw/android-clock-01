@@ -3,6 +3,7 @@ package com.simpleclock.app.data
 import android.content.Context
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import kotlinx.coroutines.flow.Flow
@@ -20,10 +21,16 @@ class SettingsRepository(private val context: Context) {
         val themeMode = stringPreferencesKey("theme_mode")
         val clockStyle = stringPreferencesKey("clock_style")
         val timeFormat = stringPreferencesKey("time_format")
+        val screenOrientation = stringPreferencesKey("screen_orientation")
+        val clockFontSizePortrait = intPreferencesKey("clock_font_size_portrait")
+        val clockFontSizeLandscape = intPreferencesKey("clock_font_size_landscape")
+        val clockFontSizeLevelLegacy = intPreferencesKey("clock_font_size_level")
         val randomRainbowColors = stringPreferencesKey("random_rainbow_colors")
+        val savedRainbowThemes = stringPreferencesKey("saved_rainbow_themes")
     }
 
     val settings: Flow<AppSettings> = context.settingsDataStore.data.map { values ->
+        val legacyFontSize = values[Keys.clockFontSizeLevelLegacy]
         AppSettings(
             showSeconds = values[Keys.showSeconds] ?: true,
             blinkColon = values[Keys.blinkColon] ?: false,
@@ -33,9 +40,17 @@ class SettingsRepository(private val context: Context) {
             themeMode = values[Keys.themeMode].toEnumOrDefault(AppThemeMode.SYSTEM),
             clockStyle = values[Keys.clockStyle].toEnumOrDefault(ClockStyle.BOLD),
             timeFormat = values[Keys.timeFormat].toEnumOrDefault(TimeFormat.SYSTEM),
+            screenOrientation = values[Keys.screenOrientation].toEnumOrDefault(ScreenOrientation.SYSTEM),
+            clockFontSizePortrait = (values[Keys.clockFontSizePortrait] ?: legacyFontSize ?: 3).coerceIn(1, 5),
+            clockFontSizeLandscape = (values[Keys.clockFontSizeLandscape] ?: legacyFontSize ?: 3).coerceIn(1, 5),
             randomRainbowColors = values[Keys.randomRainbowColors]?.let { encoded ->
                 encoded.split(',').mapNotNull { it.trim().toLongOrNull() }.takeIf { it.size >= 2 }
             } ?: DEFAULT_RANDOM_RAINBOW_COLORS,
+            savedRainbowThemes = values[Keys.savedRainbowThemes]?.let { encoded ->
+                encoded.split(';').mapNotNull { themeStr ->
+                    themeStr.split(',').mapNotNull { it.trim().toLongOrNull() }.takeIf { it.size >= 2 }
+                }
+            } ?: emptyList(),
         )
     }
 
@@ -49,7 +64,13 @@ class SettingsRepository(private val context: Context) {
             values[Keys.themeMode] = settings.themeMode.name
             values[Keys.clockStyle] = settings.clockStyle.name
             values[Keys.timeFormat] = settings.timeFormat.name
+            values[Keys.screenOrientation] = settings.screenOrientation.name
+            values[Keys.clockFontSizePortrait] = settings.clockFontSizePortrait.coerceIn(1, 5)
+            values[Keys.clockFontSizeLandscape] = settings.clockFontSizeLandscape.coerceIn(1, 5)
             values[Keys.randomRainbowColors] = settings.randomRainbowColors.joinToString(",")
+            values[Keys.savedRainbowThemes] = settings.savedRainbowThemes.joinToString(";") { theme ->
+                theme.joinToString(",")
+            }
         }
     }
 }

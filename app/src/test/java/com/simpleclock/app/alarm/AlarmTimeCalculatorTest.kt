@@ -1,6 +1,7 @@
 package com.simpleclock.app.alarm
 
 import com.simpleclock.app.data.AlarmEntity
+import com.simpleclock.app.data.fontSizeScale
 import org.junit.Assert.assertEquals
 import org.junit.Test
 import java.time.ZoneId
@@ -78,6 +79,63 @@ class AlarmTimeCalculatorTest {
         org.junit.Assert.assertEquals(
             com.simpleclock.app.R.string.theme_random_rainbow,
             com.simpleclock.app.data.AppThemeColor.RANDOM_RAINBOW.labelRes,
+        )
+    }
+
+    @Test
+    fun fontSizeScaleCoversFiveLevelsForPortraitAndLandscape() {
+        val base = com.simpleclock.app.data.AppSettings()
+        assertEquals(0.70f, base.copy(clockFontSizePortrait = 1).fontSizeScale(isPortrait = true), 0.001f)
+        assertEquals(0.85f, base.copy(clockFontSizePortrait = 2).fontSizeScale(isPortrait = true), 0.001f)
+        assertEquals(1.00f, base.copy(clockFontSizePortrait = 3).fontSizeScale(isPortrait = true), 0.001f)
+        assertEquals(1.15f, base.copy(clockFontSizePortrait = 4).fontSizeScale(isPortrait = true), 0.001f)
+        assertEquals(1.30f, base.copy(clockFontSizePortrait = 5).fontSizeScale(isPortrait = true), 0.001f)
+
+        assertEquals(0.70f, base.copy(clockFontSizeLandscape = 1).fontSizeScale(isPortrait = false), 0.001f)
+        assertEquals(0.85f, base.copy(clockFontSizeLandscape = 2).fontSizeScale(isPortrait = false), 0.001f)
+        assertEquals(1.00f, base.copy(clockFontSizeLandscape = 3).fontSizeScale(isPortrait = false), 0.001f)
+        assertEquals(1.15f, base.copy(clockFontSizeLandscape = 4).fontSizeScale(isPortrait = false), 0.001f)
+        assertEquals(1.30f, base.copy(clockFontSizeLandscape = 5).fontSizeScale(isPortrait = false), 0.001f)
+    }
+
+    @Test
+    fun glassClockStyleMatchesResource() {
+        org.junit.Assert.assertEquals(
+            com.simpleclock.app.R.string.style_glass,
+            com.simpleclock.app.data.ClockStyle.GLASS.labelRes,
+        )
+    }
+
+    @Test
+    fun clockStylesOrderedAsExpected() {
+        val expected = listOf(
+            com.simpleclock.app.data.ClockStyle.BOLD,
+            com.simpleclock.app.data.ClockStyle.THIN,
+            com.simpleclock.app.data.ClockStyle.NEON,
+            com.simpleclock.app.data.ClockStyle.AURA_GLOW,
+            com.simpleclock.app.data.ClockStyle.OUTLINE,
+            com.simpleclock.app.data.ClockStyle.LED,
+            com.simpleclock.app.data.ClockStyle.GLASS,
+            com.simpleclock.app.data.ClockStyle.NIXIE_TUBE,
+            com.simpleclock.app.data.ClockStyle.ANALOG_CLASSIC,
+            com.simpleclock.app.data.ClockStyle.ANALOG_MINIMAL,
+            com.simpleclock.app.data.ClockStyle.BAUHAUS_GEOMETRIC,
+            com.simpleclock.app.data.ClockStyle.SWISS_RAILWAY,
+        )
+        org.junit.Assert.assertEquals(expected, com.simpleclock.app.data.ClockStyle.entries)
+    }
+
+    @Test
+    fun screenOrientationEnumOrderedAsExpected() {
+        val expected = listOf(
+            com.simpleclock.app.data.ScreenOrientation.SYSTEM,
+            com.simpleclock.app.data.ScreenOrientation.PORTRAIT,
+            com.simpleclock.app.data.ScreenOrientation.LANDSCAPE,
+        )
+        org.junit.Assert.assertEquals(expected, com.simpleclock.app.data.ScreenOrientation.entries)
+        org.junit.Assert.assertEquals(
+            com.simpleclock.app.R.string.orientation_system,
+            com.simpleclock.app.data.ScreenOrientation.SYSTEM.labelRes,
         )
     }
 

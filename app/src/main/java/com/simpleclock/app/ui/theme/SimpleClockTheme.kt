@@ -29,7 +29,6 @@ fun previewColors(
             AppThemeColor.MINT -> ThemePreviewColors(Color(0xFF72DCBD), Color(0xFF091915), Color(0xFF10241E))
             AppThemeColor.SKY -> ThemePreviewColors(Color(0xFF82CFFF), Color(0xFF09171F), Color(0xFF10232E))
             AppThemeColor.GRAPE -> ThemePreviewColors(Color(0xFFD0BCFF), Color(0xFF171020), Color(0xFF22182E))
-            AppThemeColor.RAINBOW -> ThemePreviewColors(Color(0xFFE9C7FF), Color(0xFF171020), Color(0xFF251735))
             AppThemeColor.RANDOM_RAINBOW -> {
                 val primaryColor = randomRainbowColors.firstOrNull()?.let { Color(it) } ?: Color(0xFFE9C7FF)
                 ThemePreviewColors(primaryColor, Color(0xFF171020), Color(0xFF251735))
@@ -43,7 +42,6 @@ fun previewColors(
         AppThemeColor.MINT -> ThemePreviewColors(Color(0xFF006B50), Color(0xFFF0FCF8), Color(0xFFDDF8EE))
         AppThemeColor.SKY -> ThemePreviewColors(Color(0xFF006493), Color(0xFFF2FAFF), Color(0xFFDCEFFC))
         AppThemeColor.GRAPE -> ThemePreviewColors(Color(0xFF6546B8), Color(0xFFFAF7FF), Color(0xFFEDE5FF))
-        AppThemeColor.RAINBOW -> ThemePreviewColors(Color(0xFF7C3AED), Color(0xFFFFF7FF), Color(0xFFF2E7FF))
         AppThemeColor.RANDOM_RAINBOW -> {
             val primaryColor = randomRainbowColors.firstOrNull()?.let { Color(it) } ?: Color(0xFF7C3AED)
             ThemePreviewColors(primaryColor, Color(0xFFFFF7FF), Color(0xFFF2E7FF))

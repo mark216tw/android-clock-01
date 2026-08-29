@@ -6,10 +6,13 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
@@ -23,10 +26,13 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -42,7 +48,12 @@ internal fun sevenSegmentAspect(text: String): Float {
 }
 
 internal fun glassClockAspect(text: String): Float {
-    val content = text.sumOf { if (it == ':') 16.0 else 62.0 }.toFloat() / 100f
+    val content = text.sumOf { if (it == ':') 14.0 else 54.0 }.toFloat() / 100f
+    return content + (text.length - 1).coerceAtLeast(0) * 0.04f
+}
+
+internal fun nixieTubeAspect(text: String): Float {
+    val content = text.sumOf { if (it == ':') 14.0 else 48.0 }.toFloat() / 100f
     return content + (text.length - 1).coerceAtLeast(0) * 0.045f
 }
 
@@ -144,13 +155,151 @@ internal fun GlassClockDisplay(
     BoxWithConstraints(modifier, contentAlignment = Alignment.Center) {
         val fontScale = LocalDensity.current.fontScale
         val displayHeight = maxHeight
-        val digitWidth = displayHeight * 0.62f
-        val digitHeight = displayHeight * 0.90f
-        val colonWidth = displayHeight * 0.16f
+        val digitWidth = displayHeight * 0.54f
+        val digitHeight = displayHeight * 0.82f
+        val colonWidth = displayHeight * 0.14f
         val useHighContrastCard = color == Color.White
-        val cardColor = if (useHighContrastCard) Color(0x99130F24) else {
-            MaterialTheme.colorScheme.surface.copy(alpha = 0.84f)
+
+        val glassBackground = if (useHighContrastCard) {
+            Brush.verticalGradient(
+                listOf(
+                    Color(0x40FFFFFF),
+                    Color(0x18FFFFFF),
+                    Color(0x28130F24),
+                    Color(0x4D000000),
+                ),
+            )
+        } else {
+            Brush.verticalGradient(
+                listOf(
+                    Color.White.copy(alpha = 0.38f),
+                    Color.White.copy(alpha = 0.15f),
+                    color.copy(alpha = 0.08f),
+                    color.copy(alpha = 0.16f),
+                ),
+            )
         }
+
+        val glassBorder = if (useHighContrastCard) {
+            Brush.verticalGradient(
+                listOf(
+                    Color.White.copy(alpha = 0.65f),
+                    Color.White.copy(alpha = 0.20f),
+                    Color.Black.copy(alpha = 0.30f),
+                ),
+            )
+        } else {
+            Brush.verticalGradient(
+                listOf(
+                    Color.White.copy(alpha = 0.75f),
+                    Color.White.copy(alpha = 0.30f),
+                    color.copy(alpha = 0.25f),
+                ),
+            )
+        }
+
+        Row(
+            modifier = Modifier.fillMaxSize(),
+            horizontalArrangement = Arrangement.spacedBy(
+                displayHeight * 0.04f,
+                Alignment.CenterHorizontally,
+            ),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            text.forEach { character ->
+                if (character == ':') {
+                    Box(
+                        modifier = Modifier.width(colonWidth),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Canvas(
+                            modifier = Modifier
+                                .width(colonWidth)
+                                .height(digitHeight),
+                        ) {
+                            val dotRadius = size.width * 0.25f
+                            val dotColor = if (colonVisible) color else Color.Transparent
+                            val topCenter = Offset(size.width / 2f, size.height * 0.38f)
+                            val bottomCenter = Offset(size.width / 2f, size.height * 0.62f)
+                            if (colonVisible) {
+                                drawCircle(
+                                    brush = Brush.radialGradient(
+                                        listOf(Color.White.copy(alpha = 0.7f), dotColor),
+                                        center = topCenter,
+                                        radius = dotRadius * 1.3f,
+                                    ),
+                                    radius = dotRadius,
+                                    center = topCenter,
+                                )
+                                drawCircle(
+                                    brush = Brush.radialGradient(
+                                        listOf(Color.White.copy(alpha = 0.7f), dotColor),
+                                        center = bottomCenter,
+                                        radius = dotRadius * 1.3f,
+                                    ),
+                                    radius = dotRadius,
+                                    center = bottomCenter,
+                                )
+                            }
+                        }
+                    }
+                } else {
+                    val shape = RoundedCornerShape(displayHeight * 0.20f)
+                    Box(
+                        modifier = Modifier
+                            .width(digitWidth)
+                            .height(digitHeight)
+                            .shadow(
+                                elevation = 6.dp,
+                                shape = shape,
+                                ambientColor = if (useHighContrastCard) Color.Black else color.copy(alpha = 0.2f),
+                                spotColor = if (useHighContrastCard) Color.Black else color.copy(alpha = 0.35f),
+                            )
+                            .clip(shape)
+                            .background(glassBackground)
+                            .border(1.2.dp, glassBorder, shape),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Text(
+                            text = character.toString(),
+                            color = color,
+                            fontFamily = FontFamily.SansSerif,
+                            fontWeight = FontWeight.SemiBold,
+                            fontSize = (displayHeight.value * 0.58f / fontScale).sp,
+                            style = TextStyle(
+                                shadow = Shadow(
+                                    color = if (useHighContrastCard) Color.Black.copy(alpha = 0.4f) else color.copy(alpha = 0.25f),
+                                    offset = Offset(0f, 2f),
+                                    blurRadius = 3f,
+                                ),
+                            ),
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+internal fun NixieTubeDisplay(
+    text: String,
+    color: Color,
+    colonVisible: Boolean = true,
+    modifier: Modifier = Modifier,
+) {
+    BoxWithConstraints(modifier, contentAlignment = Alignment.Center) {
+        val fontScale = LocalDensity.current.fontScale
+        val displayHeight = maxHeight
+        val tubeWidth = displayHeight * 0.48f
+        val tubeHeight = displayHeight * 0.88f
+        val colonWidth = displayHeight * 0.14f
+        val tubeShape = RoundedCornerShape(displayHeight * 0.22f)
+
+        // Warm luminous ember color palette
+        val glowColor = if (color == Color.White) Color(0xFFFF9500) else color
+        val coreColor = if (color == Color.White) Color(0xFFFFFAF0) else Color.White
+
         Row(
             modifier = Modifier.fillMaxSize(),
             horizontalArrangement = Arrangement.spacedBy(
@@ -162,37 +311,166 @@ internal fun GlassClockDisplay(
             text.forEach { character ->
                 if (character == ':') {
                     Box(
-                        modifier = Modifier.width(colonWidth),
+                        modifier = Modifier
+                            .width(colonWidth)
+                            .height(tubeHeight),
                         contentAlignment = Alignment.Center,
                     ) {
-                        Text(
-                            text = ":",
-                            color = if (colonVisible) color else Color.Transparent,
-                            fontSize = (displayHeight.value * 0.56f / fontScale).sp,
-                            fontWeight = FontWeight.Medium,
-                        )
+                        Canvas(modifier = Modifier.fillMaxSize()) {
+                            val dotRadius = size.width * 0.26f
+                            val dotColor = if (colonVisible) glowColor else Color.Transparent
+                            val topCenter = Offset(size.width / 2f, size.height * 0.38f)
+                            val bottomCenter = Offset(size.width / 2f, size.height * 0.62f)
+                            if (colonVisible) {
+                                drawCircle(glowColor.copy(alpha = 0.35f), dotRadius * 2.2f, topCenter)
+                                drawCircle(dotColor, dotRadius, topCenter)
+                                drawCircle(coreColor, dotRadius * 0.45f, topCenter)
+
+                                drawCircle(glowColor.copy(alpha = 0.35f), dotRadius * 2.2f, bottomCenter)
+                                drawCircle(dotColor, dotRadius, bottomCenter)
+                                drawCircle(coreColor, dotRadius * 0.45f, bottomCenter)
+                            }
+                        }
                     }
                 } else {
-                    val shape = RoundedCornerShape(displayHeight * 0.16f)
                     Box(
                         modifier = Modifier
-                            .width(digitWidth)
-                            .height(digitHeight)
-                            .shadow(8.dp, shape)
-                            .clip(shape)
-                            .background(cardColor)
-                            .border(1.dp, color.copy(alpha = 0.38f), shape),
+                            .width(tubeWidth)
+                            .height(tubeHeight)
+                            .shadow(6.dp, shape = tubeShape, spotColor = glowColor.copy(alpha = 0.3f))
+                            .clip(tubeShape)
+                            .background(
+                                Brush.verticalGradient(
+                                    listOf(
+                                        Color(0x352E1D10),
+                                        Color(0x201A1008),
+                                        Color(0x40100A04),
+                                    ),
+                                ),
+                            )
+                            .border(
+                                1.dp,
+                                Brush.verticalGradient(
+                                    listOf(
+                                        Color.White.copy(alpha = 0.40f),
+                                        glowColor.copy(alpha = 0.25f),
+                                        Color.White.copy(alpha = 0.10f),
+                                    ),
+                                ),
+                                tubeShape,
+                            ),
                         contentAlignment = Alignment.Center,
                     ) {
+                        // Glass vertical reflection streak on the left
+                        Box(
+                            modifier = Modifier
+                                .align(Alignment.CenterStart)
+                                .padding(start = (displayHeight.value * 0.015f).dp)
+                                .width((displayHeight.value * 0.015f).dp)
+                                .height(tubeHeight * 0.75f)
+                                .clip(RoundedCornerShape(50))
+                                .background(Color.White.copy(alpha = 0.16f)),
+                        )
+
+                        // Ambient internal filament glow behind number
+                        Box(
+                            modifier = Modifier
+                                .size((displayHeight.value * 0.36f).dp)
+                                .background(
+                                    Brush.radialGradient(
+                                        listOf(
+                                            glowColor.copy(alpha = 0.28f),
+                                            Color.Transparent,
+                                        ),
+                                    ),
+                                ),
+                        )
+
                         Text(
                             text = character.toString(),
-                            color = color,
-                            fontFamily = FontFamily.SansSerif,
+                            color = glowColor,
+                            fontFamily = FontFamily.Monospace,
                             fontWeight = FontWeight.Medium,
-                            fontSize = (displayHeight.value * 0.62f / fontScale).sp,
+                            fontSize = (displayHeight.value * 0.60f / fontScale).sp,
+                            style = TextStyle(
+                                shadow = Shadow(
+                                    color = glowColor.copy(alpha = 0.95f),
+                                    blurRadius = (displayHeight.value * 0.12f).coerceAtLeast(8f),
+                                ),
+                            ),
                         )
                     }
                 }
+            }
+        }
+    }
+}
+
+@Composable
+internal fun AuraGlowDisplay(
+    text: String,
+    color: Color,
+    colonVisible: Boolean = true,
+    modifier: Modifier = Modifier,
+) {
+    val fontScale = LocalDensity.current.fontScale
+    BoxWithConstraints(modifier, contentAlignment = Alignment.Center) {
+        val displayHeight = maxHeight
+        val adjustedSize = (displayHeight.value * 0.86f / fontScale).sp
+        val parts = text.split(':')
+        val hourPart = parts.getOrNull(0) ?: text
+        val minutePart = parts.getOrNull(1)
+
+        Row(
+            modifier = Modifier.fillMaxSize(),
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(
+                text = hourPart,
+                color = color,
+                fontFamily = FontFamily.SansSerif,
+                fontWeight = FontWeight.Black,
+                fontSize = adjustedSize,
+                lineHeight = adjustedSize,
+                style = TextStyle(
+                    shadow = Shadow(
+                        color = color.copy(alpha = 0.85f),
+                        blurRadius = (displayHeight.value * 0.18f).coerceAtLeast(12f),
+                    ),
+                ),
+            )
+
+            if (minutePart != null) {
+                Text(
+                    text = ":",
+                    color = if (colonVisible) color.copy(alpha = 0.85f) else Color.Transparent,
+                    fontFamily = FontFamily.SansSerif,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = adjustedSize,
+                    lineHeight = adjustedSize,
+                    modifier = Modifier.padding(horizontal = (displayHeight.value * 0.015f).dp),
+                    style = TextStyle(
+                        shadow = Shadow(
+                            color = color.copy(alpha = 0.85f),
+                            blurRadius = (displayHeight.value * 0.18f).coerceAtLeast(12f),
+                        ),
+                    ),
+                )
+                Text(
+                    text = minutePart,
+                    color = if (color == Color.White) Color(0xFF93C5FD) else color,
+                    fontFamily = FontFamily.SansSerif,
+                    fontWeight = FontWeight.Black,
+                    fontSize = adjustedSize,
+                    lineHeight = adjustedSize,
+                    style = TextStyle(
+                        shadow = Shadow(
+                            color = (if (color == Color.White) Color(0xFF60A5FA) else color).copy(alpha = 0.85f),
+                            blurRadius = (displayHeight.value * 0.18f).coerceAtLeast(12f),
+                        ),
+                    ),
+                )
             }
         }
     }
@@ -204,8 +482,9 @@ internal fun AnalogClockDisplay(
     minute: Int,
     second: Int?,
     color: Color,
-    minimal: Boolean,
-    swissRailway: Boolean,
+    minimal: Boolean = false,
+    swissRailway: Boolean = false,
+    bauhaus: Boolean = false,
     modifier: Modifier = Modifier,
 ) {
     val highContrast = color == Color.White
@@ -217,6 +496,18 @@ internal fun AnalogClockDisplay(
         val center = Offset(size.width / 2f, size.height / 2f)
         val radius = min(size.width, size.height) * 0.46f
         val secondValue = second?.toFloat() ?: 0f
+
+        if (bauhaus) {
+            drawBauhausClock(
+                center = center,
+                radius = radius,
+                hour = hour,
+                minute = minute,
+                second = second,
+                themeColor = color,
+            )
+            return@Canvas
+        }
 
         if (swissRailway) {
             drawSwissRailwayClock(
@@ -301,6 +592,85 @@ internal fun AnalogClockDisplay(
     }
 }
 
+private fun DrawScope.drawBauhausClock(
+    center: Offset,
+    radius: Float,
+    hour: Int,
+    minute: Int,
+    second: Int?,
+    themeColor: Color,
+) {
+    val secondValue = second?.toFloat() ?: 0f
+    val bauhausBlue = Color(0xFF1E40AF)
+    val bauhausRed = Color(0xFFDC2626)
+    val bauhausYellow = Color(0xFFF59E0B)
+
+    // Outer geometric frame
+    drawCircle(
+        color = themeColor.copy(alpha = 0.25f),
+        radius = radius,
+        center = center,
+        style = Stroke(width = radius * 0.04f),
+    )
+
+    // 4 cardinal geometric discs
+    drawCircle(color = bauhausRed, radius = radius * 0.05f, center = clockPoint(center, radius * 0.85f, 0f))
+    drawCircle(color = bauhausBlue, radius = radius * 0.05f, center = clockPoint(center, radius * 0.85f, 90f))
+    drawCircle(color = bauhausYellow, radius = radius * 0.05f, center = clockPoint(center, radius * 0.85f, 180f))
+    drawCircle(color = themeColor, radius = radius * 0.05f, center = clockPoint(center, radius * 0.85f, 270f))
+
+    // Hour Hand (Bold Bauhaus Blue Pointer with Disc)
+    val hourAngle = ((hour % 12) + minute / 60f + secondValue / 3600f) * 30f
+    val hourTarget = clockPoint(center, radius * 0.52f, hourAngle)
+    drawLine(
+        color = bauhausBlue,
+        start = center,
+        end = hourTarget,
+        strokeWidth = radius * 0.11f,
+        cap = StrokeCap.Round,
+    )
+    drawCircle(
+        color = bauhausBlue,
+        radius = radius * 0.09f,
+        center = hourTarget,
+    )
+
+    // Minute Hand (Bauhaus Yellow / Amber Pointer)
+    val minuteAngle = (minute + secondValue / 60f) * 6f
+    val minuteTarget = clockPoint(center, radius * 0.76f, minuteAngle)
+    drawLine(
+        color = bauhausYellow,
+        start = center,
+        end = minuteTarget,
+        strokeWidth = radius * 0.07f,
+        cap = StrokeCap.Square,
+    )
+
+    // Second Hand (Bauhaus Red with circle counterweight)
+    if (second != null) {
+        val secondAngle = secondValue * 6f
+        val secondTip = clockPoint(center, radius * 0.84f, secondAngle)
+        val secondTail = clockPoint(center, radius * 0.22f, secondAngle + 180f)
+        drawLine(
+            color = bauhausRed,
+            start = secondTail,
+            end = secondTip,
+            strokeWidth = radius * 0.024f,
+            cap = StrokeCap.Round,
+        )
+        drawCircle(
+            color = bauhausRed,
+            radius = radius * 0.065f,
+            center = secondTail,
+            style = Stroke(width = radius * 0.02f),
+        )
+    }
+
+    // Center pivot
+    drawCircle(color = Color(0xFF1E293B), radius = radius * 0.075f, center = center)
+    drawCircle(color = Color.White, radius = radius * 0.035f, center = center)
+}
+
 private fun DrawScope.drawSwissRailwayClock(
     center: Offset,
     radius: Float,
@@ -371,30 +741,6 @@ private fun clockPoint(center: Offset, length: Float, degrees: Float): Offset {
         x = center.x + cos(radians) * length,
         y = center.y + sin(radians) * length,
     )
-}
-
-@Composable
-internal fun LcdDisplay(
-    text: String,
-    color: Color,
-    colonVisible: Boolean,
-    modifier: Modifier = Modifier,
-) {
-    Box(
-        modifier = modifier
-            .clip(RoundedCornerShape(10.dp))
-            .background(color.copy(alpha = 0.14f))
-            .padding(4.dp),
-    ) {
-        SevenSegmentDisplay(
-            text = text,
-            color = color,
-            colonVisible = colonVisible,
-            thicknessRatio = 0.065f,
-            inactiveAlpha = 0.06f,
-            modifier = Modifier.fillMaxSize(),
-        )
-    }
 }
 
 @Composable

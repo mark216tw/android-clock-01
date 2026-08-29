@@ -1,7 +1,5 @@
 package com.simpleclock.app.ui.screens
 
-import android.app.Activity
-import android.content.pm.ActivityInfo
 import android.text.format.DateFormat
 import android.content.res.Configuration
 import androidx.compose.animation.AnimatedVisibility
@@ -32,6 +30,8 @@ import androidx.compose.material.icons.rounded.Fullscreen
 import androidx.compose.material.icons.rounded.FullscreenExit
 import androidx.compose.material.icons.rounded.ScreenRotation
 import androidx.compose.material.icons.rounded.Settings
+import androidx.compose.material.icons.rounded.StayCurrentLandscape
+import androidx.compose.material.icons.rounded.StayCurrentPortrait
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -63,7 +63,9 @@ import androidx.compose.ui.unit.sp
 import com.simpleclock.app.data.AppSettings
 import com.simpleclock.app.data.AppThemeColor
 import com.simpleclock.app.data.ClockStyle
+import com.simpleclock.app.data.ScreenOrientation
 import com.simpleclock.app.data.TimeFormat
+import com.simpleclock.app.data.fontSizeScale
 import com.simpleclock.app.R
 import kotlinx.coroutines.delay
 import java.time.ZonedDateTime
@@ -78,6 +80,7 @@ fun ClockScreen(
     openAlarms: () -> Unit,
     openSettings: () -> Unit,
     toggleFullScreen: () -> Unit,
+    cycleOrientation: () -> Unit,
 ) {
     val context = LocalContext.current
     val configuration = LocalConfiguration.current
@@ -115,8 +118,7 @@ fun ClockScreen(
     )
     val colonVisible = !settings.blinkColon || now.second % 2 == 0
     val isPortrait = configuration.orientation == Configuration.ORIENTATION_PORTRAIT
-    val isRainbow = settings.themeColor == AppThemeColor.RAINBOW ||
-        settings.themeColor == AppThemeColor.RANDOM_RAINBOW
+    val isRainbow = settings.themeColor == AppThemeColor.RANDOM_RAINBOW
     val clockColor = if (isRainbow) Color.White else MaterialTheme.colorScheme.primary
     val rainbowBrush = if (
         settings.themeColor == AppThemeColor.RANDOM_RAINBOW &&
@@ -172,21 +174,22 @@ fun ClockScreen(
                 dayPeriod.isNotEmpty() -> 0.24f
                 else -> 0f
             }
+            val fontScaleMultiplier = settings.fontSizeScale(isPortrait)
+            val styleScale = when (settings.clockStyle) {
+                ClockStyle.LED -> if (isPortrait) 0.88f else 0.82f
+                ClockStyle.GLASS -> if (isPortrait) 0.86f else 0.82f
+                ClockStyle.NIXIE_TUBE -> if (isPortrait) 0.90f else 0.85f
+                ClockStyle.ANALOG_CLASSIC,
+                ClockStyle.ANALOG_MINIMAL,
+                ClockStyle.SWISS_RAILWAY,
+                ClockStyle.BAUHAUS_GEOMETRIC -> 0.88f
+                else -> 1f
+            }
             val rawMainSize = min(
                 maxWidth.value / (mainAspect + sideAspect),
                 maxHeight.value * 0.82f,
-            ).coerceAtLeast(24f)
-            val landscapeDigitalScale = if (
-                configuration.orientation == Configuration.ORIENTATION_LANDSCAPE &&
-                settings.clockStyle in setOf(ClockStyle.LED, ClockStyle.LCD)
-            ) {
-                0.90f
-            } else {
-                1f
-            }
-            val glassCardScale = if (settings.clockStyle == ClockStyle.GLASS) 0.90f else 1f
-            val analogScale = if (isAnalog) 0.88f else 1f
-            val mainSize = rawMainSize * landscapeDigitalScale * glassCardScale * analogScale
+            ).coerceAtLeast(24f) * fontScaleMultiplier
+            val mainSize = rawMainSize * styleScale
 
             Row(verticalAlignment = Alignment.Bottom) {
                 ClockStyleDisplay(
@@ -276,18 +279,13 @@ fun ClockScreen(
                     ClockAction(Icons.Rounded.AccessAlarm, "鬧鐘", openAlarms)
                     ClockAction(Icons.Rounded.Settings, "設定", openSettings)
                     ClockAction(
-                        icon = Icons.Rounded.ScreenRotation,
-                        label = stringResource(
-                            if (isPortrait) R.string.switch_to_landscape
-                            else R.string.switch_to_portrait,
-                        ),
-                        onClick = {
-                            (context as? Activity)?.requestedOrientation = if (isPortrait) {
-                                ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
-                            } else {
-                                ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
-                            }
+                        icon = when (settings.screenOrientation) {
+                            ScreenOrientation.SYSTEM -> Icons.Rounded.ScreenRotation
+                            ScreenOrientation.PORTRAIT -> Icons.Rounded.StayCurrentPortrait
+                            ScreenOrientation.LANDSCAPE -> Icons.Rounded.StayCurrentLandscape
                         },
+                        label = stringResource(settings.screenOrientation.labelRes),
+                        onClick = cycleOrientation,
                     )
                     ClockAction(
                         icon = if (settings.fullScreen) {
@@ -337,17 +335,26 @@ internal fun ClockStyleDisplay(
                 .width((size * glassClockAspect(displayText)).dp)
                 .height(size.dp),
         )
-        ClockStyle.LCD -> LcdDisplay(
+        ClockStyle.NIXIE_TUBE -> NixieTubeDisplay(
             text = displayText,
             color = color,
             colonVisible = colonVisible,
             modifier = Modifier
-                .width((size * sevenSegmentAspect(displayText)).dp)
+                .width((size * nixieTubeAspect(displayText)).dp)
+                .height(size.dp),
+        )
+        ClockStyle.AURA_GLOW -> AuraGlowDisplay(
+            text = displayText,
+            color = color,
+            colonVisible = colonVisible,
+            modifier = Modifier
+                .width((size * (displayText.length * 0.58f)).dp)
                 .height(size.dp),
         )
         ClockStyle.ANALOG_CLASSIC,
         ClockStyle.ANALOG_MINIMAL,
-        ClockStyle.SWISS_RAILWAY -> {
+        ClockStyle.SWISS_RAILWAY,
+        ClockStyle.BAUHAUS_GEOMETRIC -> {
             val parts = displayText.split(':')
             AnalogClockDisplay(
                 hour = parts.getOrNull(0)?.toIntOrNull() ?: 0,
@@ -356,6 +363,7 @@ internal fun ClockStyleDisplay(
                 color = color,
                 minimal = style == ClockStyle.ANALOG_MINIMAL,
                 swissRailway = style == ClockStyle.SWISS_RAILWAY,
+                bauhaus = style == ClockStyle.BAUHAUS_GEOMETRIC,
                 modifier = Modifier
                     .width(size.dp)
                     .height(size.dp),
@@ -367,12 +375,7 @@ internal fun ClockStyleDisplay(
                 ClockStyle.THIN -> FontWeight.Light
                 ClockStyle.NEON -> FontWeight.Medium
                 ClockStyle.OUTLINE -> FontWeight.Black
-                ClockStyle.LED,
-                ClockStyle.LCD,
-                ClockStyle.GLASS,
-                ClockStyle.ANALOG_CLASSIC,
-                ClockStyle.ANALOG_MINIMAL,
-                ClockStyle.SWISS_RAILWAY -> FontWeight.Normal
+                else -> FontWeight.Normal
             }
             val annotatedText = buildAnnotatedString {
                 displayText.forEach { character ->
@@ -416,11 +419,14 @@ internal fun ClockStyleDisplay(
 }
 
 private fun displayAspect(text: String, style: ClockStyle): Float = when (style) {
-    ClockStyle.LED, ClockStyle.LCD -> sevenSegmentAspect(text)
+    ClockStyle.LED -> sevenSegmentAspect(text)
     ClockStyle.GLASS -> glassClockAspect(text)
+    ClockStyle.NIXIE_TUBE -> nixieTubeAspect(text)
+    ClockStyle.AURA_GLOW -> text.length * 0.58f
     ClockStyle.ANALOG_CLASSIC,
     ClockStyle.ANALOG_MINIMAL,
-    ClockStyle.SWISS_RAILWAY -> 1f
+    ClockStyle.SWISS_RAILWAY,
+    ClockStyle.BAUHAUS_GEOMETRIC -> 1f
     ClockStyle.NEON -> text.length * 0.64f
     else -> text.length * 0.56f
 }
@@ -428,7 +434,8 @@ private fun displayAspect(text: String, style: ClockStyle): Float = when (style)
 private fun ClockStyle.isAnalog(): Boolean =
     this == ClockStyle.ANALOG_CLASSIC ||
         this == ClockStyle.ANALOG_MINIMAL ||
-        this == ClockStyle.SWISS_RAILWAY
+        this == ClockStyle.SWISS_RAILWAY ||
+        this == ClockStyle.BAUHAUS_GEOMETRIC
 
 @Composable
 private fun ClockAction(

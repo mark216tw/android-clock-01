@@ -10,7 +10,6 @@ enum class AppThemeColor(@StringRes val labelRes: Int) {
     MINT(R.string.theme_mint),
     SKY(R.string.theme_sky),
     GRAPE(R.string.theme_grape),
-    RAINBOW(R.string.theme_rainbow),
     RANDOM_RAINBOW(R.string.theme_random_rainbow),
 }
 
@@ -67,13 +66,15 @@ enum class AppThemeMode(@StringRes val labelRes: Int) {
 enum class ClockStyle(@StringRes val labelRes: Int) {
     BOLD(R.string.style_bold),
     THIN(R.string.style_thin),
-    LED(R.string.style_led),
-    LCD(R.string.style_lcd),
     NEON(R.string.style_neon),
+    AURA_GLOW(R.string.style_aura_glow),
     OUTLINE(R.string.style_outline),
+    LED(R.string.style_led),
     GLASS(R.string.style_glass),
+    NIXIE_TUBE(R.string.style_nixie_tube),
     ANALOG_CLASSIC(R.string.style_analog_classic),
     ANALOG_MINIMAL(R.string.style_analog_minimal),
+    BAUHAUS_GEOMETRIC(R.string.style_bauhaus),
     SWISS_RAILWAY(R.string.style_swiss_railway),
 }
 
@@ -81,6 +82,12 @@ enum class TimeFormat {
     SYSTEM,
     HOUR_12,
     HOUR_24,
+}
+
+enum class ScreenOrientation(@StringRes val labelRes: Int) {
+    SYSTEM(R.string.orientation_system),
+    PORTRAIT(R.string.orientation_portrait),
+    LANDSCAPE(R.string.orientation_landscape),
 }
 
 data class AppSettings(
@@ -92,6 +99,22 @@ data class AppSettings(
     val themeMode: AppThemeMode = AppThemeMode.SYSTEM,
     val clockStyle: ClockStyle = ClockStyle.BOLD,
     val timeFormat: TimeFormat = TimeFormat.SYSTEM,
+    val screenOrientation: ScreenOrientation = ScreenOrientation.SYSTEM,
+    val clockFontSizePortrait: Int = 3,
+    val clockFontSizeLandscape: Int = 3,
     val randomRainbowColors: List<Long> = DEFAULT_RANDOM_RAINBOW_COLORS,
+    val savedRainbowThemes: List<List<Long>> = emptyList(),
 )
+
+fun AppSettings.fontSizeScale(isPortrait: Boolean): Float {
+    val level = (if (isPortrait) clockFontSizePortrait else clockFontSizeLandscape).coerceIn(1, 5)
+    return when (level) {
+        1 -> 0.70f
+        2 -> 0.85f
+        3 -> 1.00f
+        4 -> 1.15f
+        5 -> 1.30f
+        else -> 1.00f
+    }
+}
 

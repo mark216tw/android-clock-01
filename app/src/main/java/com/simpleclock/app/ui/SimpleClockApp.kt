@@ -15,7 +15,9 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import com.simpleclock.app.AppDestination
 import com.simpleclock.app.MainViewModel
+import android.content.pm.ActivityInfo
 import com.simpleclock.app.data.AppThemeColor
+import com.simpleclock.app.data.ScreenOrientation
 import com.simpleclock.app.ui.screens.AlarmListScreen
 import com.simpleclock.app.ui.screens.ClockScreen
 import com.simpleclock.app.ui.screens.SettingsScreen
@@ -65,6 +67,16 @@ fun SimpleClockApp(
             onDispose { }
         }
 
+        DisposableEffect(settings.screenOrientation) {
+            val activity = view.context as? Activity
+            activity?.requestedOrientation = when (settings.screenOrientation) {
+                ScreenOrientation.SYSTEM -> ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
+                ScreenOrientation.PORTRAIT -> ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+                ScreenOrientation.LANDSCAPE -> ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
+            }
+            onDispose { }
+        }
+
         when (destination) {
             AppDestination.CLOCK -> ClockScreen(
                 settings = settings,
@@ -73,6 +85,16 @@ fun SimpleClockApp(
                 toggleFullScreen = {
                     viewModel.updateSettings { current ->
                         current.copy(fullScreen = !current.fullScreen)
+                    }
+                },
+                cycleOrientation = {
+                    viewModel.updateSettings { current ->
+                        val next = when (current.screenOrientation) {
+                            ScreenOrientation.SYSTEM -> ScreenOrientation.PORTRAIT
+                            ScreenOrientation.PORTRAIT -> ScreenOrientation.LANDSCAPE
+                            ScreenOrientation.LANDSCAPE -> ScreenOrientation.SYSTEM
+                        }
+                        current.copy(screenOrientation = next)
                     }
                 },
             )
