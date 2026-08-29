@@ -23,6 +23,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material.icons.rounded.CheckCircle
+import androidx.compose.material.icons.rounded.Refresh
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -136,24 +137,51 @@ fun SettingsScreen(
                 )
                 Spacer(Modifier.height(10.dp))
                 Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                    AppThemeColor.entries.chunked(3).forEach { rowColors ->
+                    AppThemeColor.entries.chunked(2).forEach { rowColors ->
                         Row(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.spacedBy(10.dp),
                         ) {
                             rowColors.forEach { color ->
-                                val preview = previewColors(color, isDark)
+                                val preview = previewColors(color, isDark, settings.randomRainbowColors)
+                                val isRandomRainbow = color == AppThemeColor.RANDOM_RAINBOW
+                                val gradientColors = if (isRandomRainbow) {
+                                    settings.randomRainbowColors.map { Color(it) }
+                                } else {
+                                    null
+                                }
                                 ThemeColorCard(
                                     modifier = Modifier.weight(1f),
                                     label = stringResource(color.labelRes),
                                     primary = preview.primary,
                                     background = preview.background,
-                                    rainbow = color == AppThemeColor.RAINBOW,
+                                    rainbow = color == AppThemeColor.RAINBOW || isRandomRainbow,
+                                    gradientColors = gradientColors,
                                     selected = settings.themeColor == color,
-                                    onClick = { onUpdate { it.copy(themeColor = color) } },
+                                    onGenerateClick = if (isRandomRainbow) {
+                                        {
+                                            val newColors = com.simpleclock.app.data.generateRandomRainbowColors()
+                                            onUpdate {
+                                                it.copy(
+                                                    themeColor = AppThemeColor.RANDOM_RAINBOW,
+                                                    randomRainbowColors = newColors,
+                                                )
+                                            }
+                                        }
+                                    } else {
+                                        null
+                                    },
+                                    onClick = {
+                                        if (isRandomRainbow && settings.themeColor == AppThemeColor.RANDOM_RAINBOW) {
+                                            val newColors = com.simpleclock.app.data.generateRandomRainbowColors()
+                                            onUpdate { it.copy(randomRainbowColors = newColors) }
+                                        } else {
+                                            onUpdate { it.copy(themeColor = color) }
+                                        }
+                                    },
                                 )
                             }
-                            repeat(3 - rowColors.size) {
+                            repeat(2 - rowColors.size) {
                                 Spacer(Modifier.weight(1f))
                             }
                         }
@@ -259,6 +287,8 @@ private fun ThemeColorCard(
     background: Color,
     rainbow: Boolean,
     selected: Boolean,
+    gradientColors: List<Color>? = null,
+    onGenerateClick: (() -> Unit)? = null,
     onClick: () -> Unit,
 ) {
     Card(
@@ -273,7 +303,9 @@ private fun ThemeColorCard(
                 .fillMaxWidth()
                 .then(
                     if (rainbow) {
-                        Modifier.background(
+                        val brush = if (gradientColors != null && gradientColors.isNotEmpty()) {
+                            Brush.linearGradient(gradientColors)
+                        } else {
                             Brush.linearGradient(
                                 listOf(
                                     Color(0xFF4C1D95),
@@ -282,8 +314,9 @@ private fun ThemeColorCard(
                                     Color(0xFFF59E0B),
                                     Color(0xFFDB2777),
                                 ),
-                            ),
-                        )
+                            )
+                        }
+                        Modifier.background(brush)
                     } else {
                         Modifier
                     },
@@ -300,6 +333,32 @@ private fun ThemeColorCard(
                 style = MaterialTheme.typography.labelMedium,
                 fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal,
             )
+            if (onGenerateClick != null) {
+                Spacer(Modifier.height(6.dp))
+                Surface(
+                    onClick = onGenerateClick,
+                    shape = CircleShape,
+                    color = Color.Black.copy(alpha = 0.35f),
+                    contentColor = Color.White,
+                ) {
+                    Row(
+                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(4.dp),
+                    ) {
+                        Icon(
+                            Icons.Rounded.Refresh,
+                            contentDescription = stringResource(R.string.generate_random_theme),
+                            modifier = Modifier.size(13.dp),
+                        )
+                        Text(
+                            text = stringResource(R.string.generate_random_theme),
+                            style = MaterialTheme.typography.labelSmall,
+                            fontWeight = FontWeight.Bold,
+                        )
+                    }
+                }
+            }
         }
     }
 }

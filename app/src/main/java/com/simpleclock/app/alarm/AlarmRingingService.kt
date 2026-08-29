@@ -127,13 +127,12 @@ class AlarmRingingService : Service() {
 
     private fun updateNotificationLabel(requestedAlarmId: Long) {
         serviceScope.launch {
-            val label = try {
+            val alarm = try {
                 withContext(Dispatchers.IO) {
                     (application as SimpleClockApplication)
                         .database
                         .alarmDao()
                         .getById(requestedAlarmId)
-                        ?.label
                 }
             } catch (error: Exception) {
                 Log.w(TAG, "Unable to load alarm label", error)
@@ -141,12 +140,13 @@ class AlarmRingingService : Service() {
             }
 
             if (ringing && alarmId == requestedAlarmId) {
-                val title = label?.takeIf { it.isNotBlank() }
+                val title = alarm?.label?.takeIf { it.isNotBlank() }
                     ?: getString(R.string.alarm_name_default)
+                val color = alarm?.color ?: 0L
                 try {
                     notificationManager.notify(
                         NOTIFICATION_ID,
-                        buildNotification(requestedAlarmId, title),
+                        buildNotification(requestedAlarmId, title, color),
                     )
                 } catch (error: RuntimeException) {
                     Log.w(TAG, "Unable to update alarm notification", error)
@@ -155,7 +155,7 @@ class AlarmRingingService : Service() {
         }
     }
 
-    private fun buildNotification(requestedAlarmId: Long, title: String): Notification {
+    private fun buildNotification(requestedAlarmId: Long, title: String, color: Long = 0L): Notification {
         val activityIntent = Intent(this, AlarmActivity::class.java)
             .addFlags(
                 Intent.FLAG_ACTIVITY_NEW_TASK or
@@ -192,6 +192,10 @@ class AlarmRingingService : Service() {
             .addAction(0, getString(R.string.stop), stopPendingIntent)
             .addAction(0, getString(R.string.snooze_minutes), snoozePendingIntent)
             .setSound(null)
+
+        if (color != 0L) {
+            builder.setColor(color.toInt())
+        }
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             builder.setForegroundServiceBehavior(Notification.FOREGROUND_SERVICE_IMMEDIATE)

@@ -16,7 +16,11 @@ data class ThemePreviewColors(
     val surface: Color,
 )
 
-fun previewColors(color: AppThemeColor, dark: Boolean): ThemePreviewColors {
+fun previewColors(
+    color: AppThemeColor,
+    dark: Boolean,
+    randomRainbowColors: List<Long> = emptyList(),
+): ThemePreviewColors {
     if (dark) {
         return when (color) {
             AppThemeColor.CORAL -> ThemePreviewColors(Color(0xFFFFB2BC), Color(0xFF1E1013), Color(0xFF2A171B))
@@ -26,6 +30,10 @@ fun previewColors(color: AppThemeColor, dark: Boolean): ThemePreviewColors {
             AppThemeColor.SKY -> ThemePreviewColors(Color(0xFF82CFFF), Color(0xFF09171F), Color(0xFF10232E))
             AppThemeColor.GRAPE -> ThemePreviewColors(Color(0xFFD0BCFF), Color(0xFF171020), Color(0xFF22182E))
             AppThemeColor.RAINBOW -> ThemePreviewColors(Color(0xFFE9C7FF), Color(0xFF171020), Color(0xFF251735))
+            AppThemeColor.RANDOM_RAINBOW -> {
+                val primaryColor = randomRainbowColors.firstOrNull()?.let { Color(it) } ?: Color(0xFFE9C7FF)
+                ThemePreviewColors(primaryColor, Color(0xFF171020), Color(0xFF251735))
+            }
         }
     }
     return when (color) {
@@ -36,6 +44,10 @@ fun previewColors(color: AppThemeColor, dark: Boolean): ThemePreviewColors {
         AppThemeColor.SKY -> ThemePreviewColors(Color(0xFF006493), Color(0xFFF2FAFF), Color(0xFFDCEFFC))
         AppThemeColor.GRAPE -> ThemePreviewColors(Color(0xFF6546B8), Color(0xFFFAF7FF), Color(0xFFEDE5FF))
         AppThemeColor.RAINBOW -> ThemePreviewColors(Color(0xFF7C3AED), Color(0xFFFFF7FF), Color(0xFFF2E7FF))
+        AppThemeColor.RANDOM_RAINBOW -> {
+            val primaryColor = randomRainbowColors.firstOrNull()?.let { Color(it) } ?: Color(0xFF7C3AED)
+            ThemePreviewColors(primaryColor, Color(0xFFFFF7FF), Color(0xFFF2E7FF))
+        }
     }
 }
 
@@ -49,7 +61,7 @@ fun SimpleClockTheme(
         AppThemeMode.LIGHT -> false
         AppThemeMode.DARK -> true
     }
-    val colors = previewColors(settings.themeColor, isDark)
+    val colors = previewColors(settings.themeColor, isDark, settings.randomRainbowColors)
     val scheme = if (isDark) {
         darkColorScheme(
             primary = colors.primary,

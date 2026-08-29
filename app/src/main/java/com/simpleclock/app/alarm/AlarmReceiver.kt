@@ -16,9 +16,10 @@ class AlarmReceiver : BroadcastReceiver() {
         val alarmId = intent.getLongExtra(AlarmScheduler.EXTRA_ALARM_ID, -1L)
         if (alarmId <= 0L) return
 
-        (context.applicationContext as SimpleClockApplication)
-            .alarmScheduler
-            .cancelUpcoming(alarmId)
+        val app = context.applicationContext as SimpleClockApplication
+        app.alarmScheduler.cancelUpcoming(alarmId)
+        app.alarmScheduler.cancelSnooze(alarmId)
+
 
         val serviceIntent = Intent(context, AlarmRingingService::class.java)
             .setAction(AlarmRingingService.ACTION_START)

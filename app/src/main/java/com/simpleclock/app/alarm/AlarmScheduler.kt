@@ -69,27 +69,44 @@ class AlarmScheduler(private val context: Context) {
         val info = AlarmManager.AlarmClockInfo(triggerAt, showIntent)
         return try {
             alarmManager.setAlarmClock(info, alarmPendingIntent(alarmId, true))
+            showSnoozedNotification(alarmId, triggerAt)
             true
         } catch (_: SecurityException) {
+            cancelSnooze(alarmId)
             false
         }
     }
 
     fun cancel(alarmId: Long) {
         alarmManager.cancel(alarmPendingIntent(alarmId, false))
-        alarmManager.cancel(alarmPendingIntent(alarmId, true))
+        cancelSnooze(alarmId)
         cancelUpcoming(alarmId)
     }
 
     fun cancelOccurrence(alarmId: Long) {
         alarmManager.cancel(alarmPendingIntent(alarmId, false))
+        cancelSnooze(alarmId)
         cancelUpcoming(alarmId)
+    }
+
+    fun cancelSnooze(alarmId: Long) {
+        alarmManager.cancel(alarmPendingIntent(alarmId, true))
+        context.getSystemService(NotificationManager::class.java)
+            .cancel(UpcomingAlarmReceiver.snoozeNotificationId(alarmId))
     }
 
     fun cancelUpcoming(alarmId: Long) {
         alarmManager.cancel(upcomingPendingIntent(alarmId, 0L))
         context.getSystemService(NotificationManager::class.java)
             .cancel(UpcomingAlarmReceiver.notificationId(alarmId))
+    }
+
+    private fun showSnoozedNotification(alarmId: Long, triggerAt: Long) {
+        val intent = Intent(context, UpcomingAlarmReceiver::class.java)
+            .setAction(UpcomingAlarmReceiver.ACTION_SHOW_SNOOZED)
+            .putExtra(EXTRA_ALARM_ID, alarmId)
+            .putExtra(EXTRA_TRIGGER_AT, triggerAt)
+        context.sendBroadcast(intent)
     }
 
     private fun scheduleUpcoming(alarmId: Long, triggerAt: Long) {

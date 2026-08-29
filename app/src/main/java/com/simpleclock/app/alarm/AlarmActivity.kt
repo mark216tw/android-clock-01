@@ -88,6 +88,7 @@ class AlarmActivity : ComponentActivity() {
                     AlarmDisplay(
                         time = formatTime(LocalTime.now()),
                         label = defaultLabel,
+                        color = com.simpleclock.app.data.ALARM_DEFAULT_COLOR,
                     ),
                 )
             }
@@ -115,6 +116,7 @@ class AlarmActivity : ComponentActivity() {
                             formatTime(LocalTime.of(alarm.hour, alarm.minute))
                         },
                         label = alarm.label.ifBlank { defaultLabel },
+                        color = alarm.color,
                     )
                 }
             }
@@ -210,6 +212,7 @@ class AlarmActivity : ComponentActivity() {
 private data class AlarmDisplay(
     val time: String,
     val label: String,
+    val color: Long,
 )
 
 @androidx.compose.runtime.Composable
@@ -218,9 +221,10 @@ private fun AlarmScreen(
     onStop: () -> Unit,
     onSnooze: () -> Unit,
 ) {
+    val accentColor = Color(display.color)
     val colorScheme = darkColorScheme(
-        primary = Color(0xFFFFB59E),
-        onPrimary = Color(0xFF3E0A00),
+        primary = accentColor,
+        onPrimary = Color(0xFF171218),
         surface = Color(0xFF171218),
         onSurface = Color(0xFFFFF7F5),
     )
@@ -241,6 +245,7 @@ private fun AlarmScreen(
                     ) {
                         AlarmInfo(display, compact = true, modifier = Modifier.weight(1f))
                         AlarmButtons(
+                            accentColor = accentColor,
                             onStop = onStop,
                             onSnooze = onSnooze,
                             compact = true,
@@ -257,7 +262,7 @@ private fun AlarmScreen(
                         Spacer(modifier = Modifier.weight(1f))
                         AlarmInfo(display, compact = false)
                         Spacer(modifier = Modifier.weight(1f))
-                        AlarmButtons(onStop, onSnooze, compact = false)
+                        AlarmButtons(accentColor, onStop, onSnooze, compact = false)
                     }
                 }
             }
@@ -267,24 +272,25 @@ private fun AlarmScreen(
 
 @androidx.compose.runtime.Composable
 private fun AlarmInfo(display: AlarmDisplay, compact: Boolean, modifier: Modifier = Modifier) {
+    val accentColor = Color(display.color)
     Column(modifier = modifier, horizontalAlignment = Alignment.CenterHorizontally) {
         Box(
             modifier = Modifier
                 .size(if (compact) 64.dp else 88.dp)
-                .background(Color(0x33FF8A65), CircleShape),
+                .background(accentColor.copy(alpha = 0.25f), CircleShape),
             contentAlignment = Alignment.Center,
         ) {
             Icon(
                 imageVector = Icons.Rounded.Alarm,
                 contentDescription = null,
                 modifier = Modifier.size(if (compact) 38.dp else 48.dp),
-                tint = Color(0xFFFFA184),
+                tint = accentColor,
             )
         }
         Text(
             text = stringResource(R.string.alarm_ringing),
             modifier = Modifier.padding(top = if (compact) 10.dp else 24.dp),
-            color = Color(0xFFFFB59E),
+            color = accentColor,
             fontSize = 18.sp,
             fontWeight = FontWeight.SemiBold,
         )
@@ -309,6 +315,7 @@ private fun AlarmInfo(display: AlarmDisplay, compact: Boolean, modifier: Modifie
 
 @androidx.compose.runtime.Composable
 private fun AlarmButtons(
+    accentColor: Color,
     onStop: () -> Unit,
     onSnooze: () -> Unit,
     compact: Boolean,
@@ -339,8 +346,8 @@ private fun AlarmButtons(
                 .heightIn(min = if (compact) 60.dp else 76.dp),
             shape = RoundedCornerShape(24.dp),
             colors = ButtonDefaults.buttonColors(
-                containerColor = Color(0xFFFF8A65),
-                contentColor = Color(0xFF3E0A00),
+                containerColor = accentColor,
+                contentColor = Color(0xFF171218),
             ),
         ) {
             Text(
@@ -351,3 +358,4 @@ private fun AlarmButtons(
         }
     }
 }
+

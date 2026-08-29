@@ -20,6 +20,7 @@ class SettingsRepository(private val context: Context) {
         val themeMode = stringPreferencesKey("theme_mode")
         val clockStyle = stringPreferencesKey("clock_style")
         val timeFormat = stringPreferencesKey("time_format")
+        val randomRainbowColors = stringPreferencesKey("random_rainbow_colors")
     }
 
     val settings: Flow<AppSettings> = context.settingsDataStore.data.map { values ->
@@ -32,6 +33,9 @@ class SettingsRepository(private val context: Context) {
             themeMode = values[Keys.themeMode].toEnumOrDefault(AppThemeMode.SYSTEM),
             clockStyle = values[Keys.clockStyle].toEnumOrDefault(ClockStyle.BOLD),
             timeFormat = values[Keys.timeFormat].toEnumOrDefault(TimeFormat.SYSTEM),
+            randomRainbowColors = values[Keys.randomRainbowColors]?.let { encoded ->
+                encoded.split(',').mapNotNull { it.trim().toLongOrNull() }.takeIf { it.size >= 2 }
+            } ?: DEFAULT_RANDOM_RAINBOW_COLORS,
         )
     }
 
@@ -45,6 +49,7 @@ class SettingsRepository(private val context: Context) {
             values[Keys.themeMode] = settings.themeMode.name
             values[Keys.clockStyle] = settings.clockStyle.name
             values[Keys.timeFormat] = settings.timeFormat.name
+            values[Keys.randomRainbowColors] = settings.randomRainbowColors.joinToString(",")
         }
     }
 }

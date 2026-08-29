@@ -49,6 +49,38 @@ class AlarmTimeCalculatorTest {
         assertEquals(dateTime(2026, 9, 1, 9, 15), AlarmTimeCalculator.nextOccurrence(alarm, now))
     }
 
+    @Test
+    fun alarmColorsContainsTwentyDistinctColors() {
+        val colors = com.simpleclock.app.data.ALARM_COLORS
+        assertEquals(20, colors.size)
+        assertEquals(20, colors.distinct().size)
+    }
+
+    @Test
+    fun defaultAlarmColorMatchesFirstPaletteColor() {
+        val alarm = alarm(hour = 8, minute = 0)
+        assertEquals(com.simpleclock.app.data.ALARM_DEFAULT_COLOR, alarm.color)
+        assertEquals(com.simpleclock.app.data.ALARM_COLORS[0], alarm.color)
+    }
+
+    @Test
+    fun randomRainbowGeneratesSixValidColors() {
+        val colors = com.simpleclock.app.data.generateRandomRainbowColors()
+        assertEquals(6, colors.size)
+        colors.forEach { color ->
+            // Alpha should be 0xFF
+            org.junit.Assert.assertTrue((color and 0xFF000000L) != 0L)
+        }
+    }
+
+    @Test
+    fun appThemeColorContainsRandomRainbow() {
+        org.junit.Assert.assertEquals(
+            com.simpleclock.app.R.string.theme_random_rainbow,
+            com.simpleclock.app.data.AppThemeColor.RANDOM_RAINBOW.labelRes,
+        )
+    }
+
     private fun alarm(hour: Int, minute: Int, repeatDays: Int = 0) = AlarmEntity(
         id = 1,
         hour = hour,
@@ -64,3 +96,4 @@ class AlarmTimeCalculatorTest {
     private fun dateTime(year: Int, month: Int, day: Int, hour: Int, minute: Int) =
         ZonedDateTime.of(year, month, day, hour, minute, 0, 0, zone)
 }
+

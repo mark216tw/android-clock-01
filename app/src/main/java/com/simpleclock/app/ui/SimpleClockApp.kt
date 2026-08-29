@@ -42,7 +42,7 @@ fun SimpleClockApp(
             window.statusBarColor = Color.TRANSPARENT
             window.navigationBarColor = Color.TRANSPARENT
             WindowInsetsControllerCompat(window, view).apply {
-                val useDarkSystemIcons = !isDark && settings.themeColor != AppThemeColor.RAINBOW
+                val useDarkSystemIcons = !isDark
                 isAppearanceLightStatusBars = useDarkSystemIcons
                 isAppearanceLightNavigationBars = useDarkSystemIcons
                 systemBarsBehavior =

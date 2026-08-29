@@ -115,18 +115,26 @@ fun ClockScreen(
     )
     val colonVisible = !settings.blinkColon || now.second % 2 == 0
     val isPortrait = configuration.orientation == Configuration.ORIENTATION_PORTRAIT
-    val isRainbow = settings.themeColor == AppThemeColor.RAINBOW
+    val isRainbow = settings.themeColor == AppThemeColor.RAINBOW ||
+        settings.themeColor == AppThemeColor.RANDOM_RAINBOW
     val clockColor = if (isRainbow) Color.White else MaterialTheme.colorScheme.primary
-    val rainbowBrush = Brush.linearGradient(
-        listOf(
-            Color(0xFF4C1D95),
-            Color(0xFF1D4ED8),
-            Color(0xFF0891B2),
-            Color(0xFF059669),
-            Color(0xFFF59E0B),
-            Color(0xFFDB2777),
-        ),
-    )
+    val rainbowBrush = if (
+        settings.themeColor == AppThemeColor.RANDOM_RAINBOW &&
+        settings.randomRainbowColors.isNotEmpty()
+    ) {
+        Brush.linearGradient(settings.randomRainbowColors.map { Color(it) })
+    } else {
+        Brush.linearGradient(
+            listOf(
+                Color(0xFF4C1D95),
+                Color(0xFF1D4ED8),
+                Color(0xFF0891B2),
+                Color(0xFF059669),
+                Color(0xFFF59E0B),
+                Color(0xFFDB2777),
+            ),
+        )
+    }
 
     Box(
         modifier = Modifier

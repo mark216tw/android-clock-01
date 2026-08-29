@@ -40,6 +40,8 @@
     <string name="theme_sky">晴空藍</string>
     <string name="theme_grape">葡萄紫</string>
     <string name="theme_rainbow">彩虹</string>
+    <string name="theme_random_rainbow">隨機彩虹</string>
+    <string name="generate_random_theme">產生</string>
     <string name="style_bold">極簡</string>
     <string name="style_led">LED</string>
     <string name="style_thin">細字</string>
@@ -74,4 +76,11 @@
     <string name="no_alarms_title">還沒有鬧鐘</string>
     <string name="no_alarms_message">點擊下方按鈕新增第一個鬧鐘</string>
     <string name="choose_repeat_days">重複日期</string>
+    <string name="custom_color">自訂色彩</string>
+    <string name="custom_color_picker_title">選擇自訂識別色</string>
+    <string name="color_hex">色碼 (HEX)</string>
+    <string name="color_red">紅色 (R)</string>
+    <string name="color_green">綠色 (G)</string>
+    <string name="color_blue">藍色 (B)</string>
+    <string name="confirm">確定</string>
 </resources>
