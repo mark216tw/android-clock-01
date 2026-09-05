@@ -31,7 +31,12 @@
     <string name="theme_color">主題色彩</string>
     <string name="theme_color_motion">主題色彩效果</string>
     <string name="theme_motion_static">靜態</string>
-    <string name="theme_motion_dynamic">動態</string>
+    <string name="theme_motion_flowing_gradient">流動漸層</string>
+    <string name="theme_motion_floating_aurora">漂浮極光</string>
+    <string name="theme_motion_rotating_glow">旋轉光暈</string>
+    <string name="theme_motion_expanding_ripples">擴散波紋</string>
+    <string name="theme_motion_floating_bokeh">散景粒子</string>
+    <string name="theme_motion_random_dynamic">隨機動態</string>
     <string name="display_mode">顯示模式</string>
     <string name="follow_system">跟隨系統</string>
     <string name="light_mode">淺色</string>

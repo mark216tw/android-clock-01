@@ -5,17 +5,56 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.simpleclock.app.data.AlarmEntity
 import com.simpleclock.app.data.AppSettings
+import com.simpleclock.app.data.ThemeColorMotion
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import kotlin.random.Random
 
 enum class AppDestination {
     CLOCK,
     ALARMS,
     SETTINGS,
+}
+
+private val randomThemeMotions = listOf(
+    ThemeColorMotion.FLOWING_GRADIENT,
+    ThemeColorMotion.FLOATING_AURORA,
+    ThemeColorMotion.ROTATING_GLOW,
+    ThemeColorMotion.EXPANDING_RIPPLES,
+    ThemeColorMotion.FLOATING_BOKEH,
+)
+
+internal fun nextRandomThemeMotion(
+    current: ThemeColorMotion? = null,
+    random: Random = Random.Default,
+): ThemeColorMotion {
+    val candidates = randomThemeMotions.filterNot { it == current }
+    return candidates[random.nextInt(candidates.size)]
+}
+
+internal class ForegroundThemeMotionSelector(
+    private val random: Random = Random.Default,
+) {
+    var current: ThemeColorMotion = nextRandomThemeMotion(random = random)
+        private set
+
+    private var wasBackgrounded = false
+
+    fun onBackgrounded() {
+        wasBackgrounded = true
+    }
+
+    fun onForegrounded(): ThemeColorMotion {
+        if (wasBackgrounded) {
+            current = nextRandomThemeMotion(current, random)
+            wasBackgrounded = false
+        }
+        return current
+    }
 }
 
 class MainViewModel(application: Application) : AndroidViewModel(application) {
@@ -27,6 +66,10 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     private val _destination = MutableStateFlow(AppDestination.CLOCK)
     val destination: StateFlow<AppDestination> = _destination.asStateFlow()
+
+    private val randomThemeMotionSelector = ForegroundThemeMotionSelector()
+    private val _randomThemeMotion = MutableStateFlow(randomThemeMotionSelector.current)
+    val randomThemeMotion: StateFlow<ThemeColorMotion> = _randomThemeMotion.asStateFlow()
 
     val alarms = alarmDao.observeAll().stateIn(
         scope = viewModelScope,
@@ -42,6 +85,14 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     fun navigate(destination: AppDestination) {
         _destination.value = destination
+    }
+
+    fun onAppBackgrounded() {
+        randomThemeMotionSelector.onBackgrounded()
+    }
+
+    fun onAppForegrounded() {
+        _randomThemeMotion.value = randomThemeMotionSelector.onForegrounded()
     }
 
     fun updateSettings(transform: (AppSettings) -> AppSettings) {

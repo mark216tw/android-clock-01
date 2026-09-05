@@ -43,6 +43,18 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+    override fun onStart() {
+        super.onStart()
+        viewModel.onAppForegrounded()
+    }
+
+    override fun onStop() {
+        if (!isChangingConfigurations) {
+            viewModel.onAppBackgrounded()
+        }
+        super.onStop()
+    }
+
     override fun onResume() {
         super.onResume()
         val returningFrom = waitingForSetting

@@ -31,6 +31,7 @@ fun SimpleClockApp(
     val settings by viewModel.settings.collectAsState()
     val destination by viewModel.destination.collectAsState()
     val alarms by viewModel.alarms.collectAsState()
+    val randomThemeMotion by viewModel.randomThemeMotion.collectAsState()
     val view = LocalView.current
 
     BackHandler(enabled = destination != AppDestination.CLOCK) {
@@ -83,6 +84,7 @@ fun SimpleClockApp(
         when (destination) {
             AppDestination.CLOCK -> ClockScreen(
                 settings = settings,
+                randomThemeMotion = randomThemeMotion,
                 openAlarms = { viewModel.navigate(AppDestination.ALARMS) },
                 openSettings = { viewModel.navigate(AppDestination.SETTINGS) },
                 toggleFullScreen = {

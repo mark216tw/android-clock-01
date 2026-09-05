@@ -65,7 +65,12 @@ enum class AppThemeMode(@StringRes val labelRes: Int) {
 
 enum class ThemeColorMotion(@StringRes val labelRes: Int) {
     STATIC(R.string.theme_motion_static),
-    DYNAMIC(R.string.theme_motion_dynamic),
+    FLOWING_GRADIENT(R.string.theme_motion_flowing_gradient),
+    FLOATING_AURORA(R.string.theme_motion_floating_aurora),
+    ROTATING_GLOW(R.string.theme_motion_rotating_glow),
+    EXPANDING_RIPPLES(R.string.theme_motion_expanding_ripples),
+    FLOATING_BOKEH(R.string.theme_motion_floating_bokeh),
+    RANDOM_DYNAMIC(R.string.theme_motion_random_dynamic),
 }
 
 enum class ClockStyle(@StringRes val labelRes: Int) {

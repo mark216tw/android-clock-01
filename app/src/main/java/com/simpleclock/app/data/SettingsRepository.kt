@@ -38,8 +38,7 @@ class SettingsRepository(private val context: Context) {
             fullScreen = values[Keys.fullScreen] ?: false,
             keepScreenOn = values[Keys.keepScreenOn] ?: false,
             themeColor = values[Keys.themeColor].toEnumOrDefault(AppThemeColor.SKY),
-            themeColorMotion = values[Keys.themeColorMotion]
-                .toEnumOrDefault(ThemeColorMotion.STATIC),
+            themeColorMotion = values[Keys.themeColorMotion].toThemeColorMotion(),
             themeMode = values[Keys.themeMode].toEnumOrDefault(AppThemeMode.SYSTEM),
             clockStyle = values[Keys.clockStyle].toEnumOrDefault(ClockStyle.BOLD),
             timeFormat = values[Keys.timeFormat].toEnumOrDefault(TimeFormat.SYSTEM),
@@ -81,3 +80,8 @@ class SettingsRepository(private val context: Context) {
 
 private inline fun <reified T : Enum<T>> String?.toEnumOrDefault(default: T): T =
     this?.let { value -> enumValues<T>().firstOrNull { it.name == value } } ?: default
+
+internal fun String?.toThemeColorMotion(): ThemeColorMotion = when (this) {
+    "DYNAMIC" -> ThemeColorMotion.RANDOM_DYNAMIC
+    else -> toEnumOrDefault(ThemeColorMotion.STATIC)
+}
