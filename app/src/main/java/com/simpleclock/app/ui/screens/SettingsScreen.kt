@@ -57,6 +57,7 @@ import com.simpleclock.app.data.AppThemeMode
 import com.simpleclock.app.data.ClockStyle
 import com.simpleclock.app.data.ScreenOrientation
 import com.simpleclock.app.data.TimeFormat
+import com.simpleclock.app.data.ThemeColorMotion
 import com.simpleclock.app.ui.theme.previewColors
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
@@ -176,6 +177,19 @@ fun SettingsScreen(
                         ),
                         selected = settings.clockFontSizeLandscape,
                         onSelected = { value -> onUpdate { it.copy(clockFontSizeLandscape = value) } },
+                    )
+                }
+            }
+            item {
+                SettingsSection(title = stringResource(R.string.theme_color_motion)) {
+                    ChoiceRow(
+                        choices = ThemeColorMotion.entries.map {
+                            it to stringResource(it.labelRes)
+                        },
+                        selected = settings.themeColorMotion,
+                        onSelected = { value ->
+                            onUpdate { it.copy(themeColorMotion = value) }
+                        },
                     )
                 }
             }

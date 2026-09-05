@@ -1,8 +1,14 @@
 package com.simpleclock.app.ui.screens
 
-import android.text.format.DateFormat
 import android.content.res.Configuration
+import android.text.format.DateFormat
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
@@ -44,10 +50,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Shadow
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
@@ -64,6 +72,7 @@ import com.simpleclock.app.data.AppSettings
 import com.simpleclock.app.data.AppThemeColor
 import com.simpleclock.app.data.ClockStyle
 import com.simpleclock.app.data.ScreenOrientation
+import com.simpleclock.app.data.ThemeColorMotion
 import com.simpleclock.app.data.TimeFormat
 import com.simpleclock.app.data.fontSizeScale
 import com.simpleclock.app.R
@@ -72,6 +81,7 @@ import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
 import java.util.Locale
+import kotlin.math.max
 import kotlin.math.min
 
 @Composable
@@ -119,31 +129,74 @@ fun ClockScreen(
     val colonVisible = !settings.blinkColon || now.second % 2 == 0
     val isPortrait = configuration.orientation == Configuration.ORIENTATION_PORTRAIT
     val isRainbow = settings.themeColor == AppThemeColor.RANDOM_RAINBOW
+    val isDynamicTheme = settings.themeColorMotion == ThemeColorMotion.DYNAMIC
     val clockColor = if (isRainbow) Color.White else MaterialTheme.colorScheme.primary
-    val rainbowBrush = if (
-        settings.themeColor == AppThemeColor.RANDOM_RAINBOW &&
-        settings.randomRainbowColors.isNotEmpty()
-    ) {
-        Brush.linearGradient(settings.randomRainbowColors.map { Color(it) })
-    } else {
-        Brush.linearGradient(
-            listOf(
-                Color(0xFF4C1D95),
-                Color(0xFF1D4ED8),
-                Color(0xFF0891B2),
-                Color(0xFF059669),
-                Color(0xFFF59E0B),
-                Color(0xFFDB2777),
+    val flowProgress = if (isDynamicTheme) {
+        val transition = rememberInfiniteTransition(label = "theme color flow")
+        val progress by transition.animateFloat(
+            initialValue = 0f,
+            targetValue = 1f,
+            animationSpec = infiniteRepeatable(
+                animation = tween(
+                    durationMillis = 90_000,
+                    easing = LinearEasing,
+                ),
+                repeatMode = RepeatMode.Reverse,
             ),
+            label = "theme color position",
         )
+        progress
+    } else {
+        0f
+    }
+    val backgroundColors = when {
+        isRainbow && settings.randomRainbowColors.isNotEmpty() ->
+            settings.randomRainbowColors.map { Color(it) }
+        isRainbow -> listOf(
+            Color(0xFF4C1D95),
+            Color(0xFF1D4ED8),
+            Color(0xFF0891B2),
+            Color(0xFF059669),
+            Color(0xFFF59E0B),
+            Color(0xFFDB2777),
+        )
+        isDynamicTheme -> listOf(
+            MaterialTheme.colorScheme.background,
+            lerp(
+                MaterialTheme.colorScheme.background,
+                MaterialTheme.colorScheme.primary,
+                0.16f,
+            ),
+            MaterialTheme.colorScheme.surface,
+            lerp(
+                MaterialTheme.colorScheme.surface,
+                MaterialTheme.colorScheme.primary,
+                0.12f,
+            ),
+            MaterialTheme.colorScheme.background,
+        )
+        else -> emptyList()
+    }
+    val backgroundBrush = if (backgroundColors.isNotEmpty()) {
+        val extent = with(LocalDensity.current) {
+            max(configuration.screenWidthDp, configuration.screenHeightDp).dp.toPx()
+        }
+        val startX = if (isDynamicTheme) -extent + flowProgress * extent else 0f
+        Brush.linearGradient(
+            colors = backgroundColors,
+            start = Offset(startX, -extent * 0.15f),
+            end = Offset(startX + extent * if (isDynamicTheme) 2f else 1f, extent * 1.15f),
+        )
+    } else {
+        null
     }
 
     Box(
         modifier = Modifier
             .fillMaxSize()
             .then(
-                if (isRainbow) {
-                    Modifier.background(rainbowBrush)
+                if (backgroundBrush != null) {
+                    Modifier.background(backgroundBrush)
                 } else {
                     Modifier.background(MaterialTheme.colorScheme.background)
                 },

@@ -63,6 +63,11 @@ enum class AppThemeMode(@StringRes val labelRes: Int) {
     DARK(R.string.dark_mode),
 }
 
+enum class ThemeColorMotion(@StringRes val labelRes: Int) {
+    STATIC(R.string.theme_motion_static),
+    DYNAMIC(R.string.theme_motion_dynamic),
+}
+
 enum class ClockStyle(@StringRes val labelRes: Int) {
     BOLD(R.string.style_bold),
     THIN(R.string.style_thin),
@@ -96,6 +101,7 @@ data class AppSettings(
     val fullScreen: Boolean = false,
     val keepScreenOn: Boolean = false,
     val themeColor: AppThemeColor = AppThemeColor.SKY,
+    val themeColorMotion: ThemeColorMotion = ThemeColorMotion.STATIC,
     val themeMode: AppThemeMode = AppThemeMode.SYSTEM,
     val clockStyle: ClockStyle = ClockStyle.BOLD,
     val timeFormat: TimeFormat = TimeFormat.SYSTEM,
@@ -117,4 +123,3 @@ fun AppSettings.fontSizeScale(isPortrait: Boolean): Float {
         else -> 1.00f
     }
 }
-

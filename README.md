@@ -2,6 +2,14 @@
 
 「簡單時鐘」是一款以大字時鐘、多組鬧鐘與桌面小工具為核心的 Android 應用程式。介面使用 Jetpack Compose 製作，支援橫式與直式顯示，並提供多種配色及時鐘樣式。
 
+## v1.3.0 Pre-release
+
+- APP 指針時鐘圖示改用白色鐘面。
+- 主題色彩新增「靜態／動態」設定；動態模式使用 90 秒單程的斜向漸層往返效果。
+- 修正淺色設定與鬧鐘頁的 Android 狀態列文字對比。
+- 新增 `prerelease` Build Type，啟用 R8 壓縮並使用 Android Debug Key 簽署。
+- 此版本為測試發行版本，不是正式版本。
+
 ## 功能特色
 
 ### 大字時鐘
@@ -10,8 +18,9 @@
 - 可在一般模式與全螢幕模式間切換，並記住選擇。
 - 支援系統、12 小時與 24 小時格式。
 - 可顯示秒數、讓冒號閃爍及保持螢幕常亮。
-- 提供極簡、細字、LED、液晶、霓虹燈、鏤空、玻璃卡片、經典指針、極簡指針及瑞士國鐵樣式。
+- 提供極簡、細字、霓虹燈、動態光暈、鏤空、LED、液態玻璃、復古輝光管、經典指針、極簡指針、包浩斯幾何及瑞士國鐵等 12 種樣式。
 - 提供珊瑚紅、蜜柑橙、向日黃、薄荷綠、晴空藍、葡萄紫、彩虹及隨機彩虹主題（支援即時隨機產生漸層）。
+- 主題色彩可選擇靜態或以 90 秒單程緩慢往返的動態效果。
 - 支援淺色、深色與跟隨系統外觀。
 
 ### 鬧鐘
@@ -38,11 +47,11 @@
 - 部分鬧鐘功能需要通知、精準鬧鐘及全螢幕通知權限。
 - 不同品牌的 Launcher 可能會以不同尺寸呈現桌面小工具。
 
-## 安裝 Debug 版本
+## 安裝 Pre-release 版本
 
-可從 GitHub 的 [Releases](../../releases) 下載標示為 **Pre-release** 的 Debug APK。
+可從 GitHub 的 [Releases](../../releases) 下載標示為 **Pre-release** 的測試發行 APK。
 
-> Debug APK 僅供開發測試，使用 Android Debug Key 簽署，並非正式發行版本。安裝前請自行評估資料備份、穩定性與安全風險。
+> Pre-release APK 啟用 R8 壓縮並使用 Android Debug Key 簽署，僅供測試，並非正式發行版本。安裝前請自行評估資料備份、穩定性與安全風險。
 
 若裝置阻擋安裝，需在 Android 系統設定中允許目前使用的瀏覽器或檔案管理器安裝未知來源應用程式。
 
@@ -61,19 +70,19 @@
 Windows PowerShell：
 
 ```powershell
-.\gradlew.bat assembleDebug
+.\gradlew.bat assemblePrerelease
 ```
 
 macOS 或 Linux：
 
 ```bash
-./gradlew assembleDebug
+./gradlew assemblePrerelease
 ```
 
-建置完成後，Debug APK 位於：
+`prerelease` Build Type 會啟用 R8 壓縮、套用 Release ProGuard 規則，並使用 Debug 金鑰簽署。建置完成後 APK 位於：
 
 ```text
-app/build/outputs/apk/debug/app-debug.apk
+app/build/outputs/apk/prerelease/app-prerelease.apk
 ```
 
 ## 測試與檢查
@@ -81,13 +90,13 @@ app/build/outputs/apk/debug/app-debug.apk
 Windows PowerShell：
 
 ```powershell
-.\gradlew.bat testDebugUnitTest lintDebug
+.\gradlew.bat testPrereleaseUnitTest lintPrerelease assemblePrerelease
 ```
 
-若要同時產生 Debug 與未簽署的 Release APK：
+若要執行所有常用變體的建置：
 
 ```powershell
-.\gradlew.bat testDebugUnitTest lintDebug assembleDebug assembleRelease
+.\gradlew.bat testDebugUnitTest lintDebug assembleDebug assemblePrerelease assembleRelease
 ```
 
 ## 專案結構

@@ -18,6 +18,7 @@ class SettingsRepository(private val context: Context) {
         val fullScreen = booleanPreferencesKey("full_screen")
         val keepScreenOn = booleanPreferencesKey("keep_screen_on")
         val themeColor = stringPreferencesKey("theme_color")
+        val themeColorMotion = stringPreferencesKey("theme_color_motion")
         val themeMode = stringPreferencesKey("theme_mode")
         val clockStyle = stringPreferencesKey("clock_style")
         val timeFormat = stringPreferencesKey("time_format")
@@ -37,6 +38,8 @@ class SettingsRepository(private val context: Context) {
             fullScreen = values[Keys.fullScreen] ?: false,
             keepScreenOn = values[Keys.keepScreenOn] ?: false,
             themeColor = values[Keys.themeColor].toEnumOrDefault(AppThemeColor.SKY),
+            themeColorMotion = values[Keys.themeColorMotion]
+                .toEnumOrDefault(ThemeColorMotion.STATIC),
             themeMode = values[Keys.themeMode].toEnumOrDefault(AppThemeMode.SYSTEM),
             clockStyle = values[Keys.clockStyle].toEnumOrDefault(ClockStyle.BOLD),
             timeFormat = values[Keys.timeFormat].toEnumOrDefault(TimeFormat.SYSTEM),
@@ -61,6 +64,7 @@ class SettingsRepository(private val context: Context) {
             values[Keys.fullScreen] = settings.fullScreen
             values[Keys.keepScreenOn] = settings.keepScreenOn
             values[Keys.themeColor] = settings.themeColor.name
+            values[Keys.themeColorMotion] = settings.themeColorMotion.name
             values[Keys.themeMode] = settings.themeMode.name
             values[Keys.clockStyle] = settings.clockStyle.name
             values[Keys.timeFormat] = settings.timeFormat.name

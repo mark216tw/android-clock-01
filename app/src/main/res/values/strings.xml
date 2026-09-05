@@ -29,6 +29,9 @@
     <string name="hour_24">24 小時</string>
     <string name="clock_style">時鐘樣式</string>
     <string name="theme_color">主題色彩</string>
+    <string name="theme_color_motion">主題色彩效果</string>
+    <string name="theme_motion_static">靜態</string>
+    <string name="theme_motion_dynamic">動態</string>
     <string name="display_mode">顯示模式</string>
     <string name="follow_system">跟隨系統</string>
     <string name="light_mode">淺色</string>
