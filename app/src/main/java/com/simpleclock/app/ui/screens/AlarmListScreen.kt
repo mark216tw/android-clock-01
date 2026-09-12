@@ -90,6 +90,7 @@ import com.simpleclock.app.AlarmSaveState
 import com.simpleclock.app.R
 import com.simpleclock.app.alarm.AlarmOccurrenceDisplay
 import com.simpleclock.app.alarm.AlarmScheduleDelay
+import com.simpleclock.app.alarm.AlarmTimeCalculator
 import com.simpleclock.app.alarm.alarmOccurrenceDisplay
 import com.simpleclock.app.alarm.alarmScheduleDelay
 import com.simpleclock.app.data.ALARM_COLORS
@@ -133,6 +134,12 @@ fun AlarmListScreen(
     var draggedOffset by remember { mutableFloatStateOf(0f) }
     var pendingOrder by remember { mutableStateOf<List<Long>?>(null) }
     var now by remember { mutableStateOf(ZonedDateTime.now()) }
+    val nextAlarmId = remember(displayedAlarms, now) {
+        displayedAlarms
+            .filter { it.enabled }
+            .minByOrNull { AlarmTimeCalculator.nextOccurrence(it, now).toInstant() }
+            ?.id
+    }
     val showSnackbar: (String) -> Unit = { message ->
         snackbarJob.value?.cancel()
         snackbarHostState.currentSnackbarData?.dismiss()
@@ -265,6 +272,7 @@ fun AlarmListScreen(
                     AlarmCard(
                         alarm = alarm,
                         now = now,
+                        isNextAlarm = alarm.id == nextAlarmId,
                         modifier = Modifier
                             .animateItem()
                             .zIndex(if (isDragging) 1f else 0f)
@@ -394,6 +402,7 @@ private fun alarmScheduledMessage(
 private fun AlarmCard(
     alarm: AlarmEntity,
     now: ZonedDateTime,
+    isNextAlarm: Boolean,
     modifier: Modifier,
     onClick: () -> Unit,
     onEnabledChange: (Boolean) -> Unit,
@@ -410,6 +419,7 @@ private fun AlarmCard(
     }
     val alarmColor = Color(alarm.color)
     val cardContainerColor = alarmColor.copy(alpha = if (alarm.enabled) 0.20f else 0.08f)
+    val alarmTime = LocalTime.of(alarm.hour, alarm.minute).format(formatter)
     Card(
         modifier = modifier
             .fillMaxWidth()
@@ -437,8 +447,30 @@ private fun AlarmCard(
             )
             Spacer(Modifier.width(14.dp))
             Column(modifier = Modifier.weight(1f)) {
+                if (isNextAlarm) {
+                    Row(
+                        modifier = Modifier
+                            .padding(bottom = 6.dp)
+                            .clip(RoundedCornerShape(50))
+                            .background(alarmColor.copy(alpha = 0.24f))
+                            .padding(horizontal = 8.dp, vertical = 4.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(4.dp),
+                    ) {
+                        Icon(
+                            imageVector = Icons.Rounded.Schedule,
+                            contentDescription = null,
+                            modifier = Modifier.size(16.dp),
+                        )
+                        Text(
+                            text = stringResource(R.string.next_alarm_indicator),
+                            style = MaterialTheme.typography.labelMedium,
+                            fontWeight = FontWeight.Bold,
+                        )
+                    }
+                }
                 Text(
-                    text = LocalTime.of(alarm.hour, alarm.minute).format(formatter),
+                    text = alarmTime,
                     style = MaterialTheme.typography.displaySmall,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onSurface.copy(alpha = if (alarm.enabled) 1f else 0.45f),
@@ -453,7 +485,7 @@ private fun AlarmCard(
                     style = MaterialTheme.typography.bodyMedium,
                 )
                 Text(
-                    text = alarmOccurrenceText(context, alarm, now),
+                    text = alarmOccurrenceText(context, alarm, now, alarmTime),
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     style = MaterialTheme.typography.bodyMedium,
                 )
@@ -469,7 +501,12 @@ private fun AlarmCard(
     }
 }
 
-private fun alarmOccurrenceText(context: Context, alarm: AlarmEntity, now: ZonedDateTime): String {
+private fun alarmOccurrenceText(
+    context: Context,
+    alarm: AlarmEntity,
+    now: ZonedDateTime,
+    alarmTime: String,
+): String {
     val display = alarmOccurrenceDisplay(alarm, now)
     if (display == AlarmOccurrenceDisplay.Disabled) return context.getString(R.string.disabled)
 
@@ -517,8 +554,8 @@ private fun alarmOccurrenceText(context: Context, alarm: AlarmEntity, now: Zoned
         AlarmScheduleDelay.Absolute -> null
     }
     return delayText?.let {
-        context.getString(R.string.alarm_occurrence_day_and_delay, dayText, it)
-    } ?: dayText
+        context.getString(R.string.alarm_occurrence_day_time_and_delay, dayText, alarmTime, it)
+    } ?: context.getString(R.string.alarm_occurrence_day_and_time, dayText, alarmTime)
 }
 
 @Composable

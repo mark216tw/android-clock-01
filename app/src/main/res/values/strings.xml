@@ -141,11 +141,13 @@
     <string name="alarm_occurrence_today">今天</string>
     <string name="alarm_occurrence_tomorrow">明天</string>
     <string name="alarm_occurrence_next_week">下週%1$s</string>
-    <string name="alarm_occurrence_day_and_delay">%1$s · %2$s</string>
+    <string name="alarm_occurrence_day_and_time">%1$s %2$s</string>
+    <string name="alarm_occurrence_day_time_and_delay">%1$s %2$s · %3$s</string>
     <string name="alarm_occurrence_imminent">還有不到 1 分鐘</string>
     <string name="alarm_occurrence_in_minutes">還有 %1$d 分鐘</string>
     <string name="alarm_occurrence_in_hours">還有 %1$d 小時</string>
     <string name="alarm_occurrence_in_hours_minutes">還有 %1$d 小時 %2$d 分鐘</string>
+    <string name="next_alarm_indicator">下一次響鈴</string>
     <string name="alarm_save_permission_error">缺少必要權限，鬧鐘尚未儲存。請允許權限後再試一次。</string>
     <string name="alarm_save_schedule_error">無法安排鬧鐘，原本設定已保留。請稍後再試。</string>
     <string name="alarm_save_general_error">儲存鬧鐘時發生錯誤，請稍後再試。</string>
