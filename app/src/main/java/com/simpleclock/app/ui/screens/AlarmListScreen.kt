@@ -93,6 +93,7 @@ import com.simpleclock.app.alarm.AlarmScheduleDelay
 import com.simpleclock.app.alarm.AlarmTimeCalculator
 import com.simpleclock.app.alarm.alarmOccurrenceDisplay
 import com.simpleclock.app.alarm.alarmScheduleDelay
+import com.simpleclock.app.data.ALARM_COLOR_HUES
 import com.simpleclock.app.data.ALARM_COLORS
 import com.simpleclock.app.data.AlarmEntity
 import com.simpleclock.app.data.alarmColorFromHue
@@ -765,7 +766,10 @@ private fun AlarmEditorDialog(
                             modifier = Modifier
                                 .size(48.dp)
                                 .clip(CircleShape)
-                                .clickable(enabled = !isSaving) { selectedPresetIndex = index },
+                                .clickable(enabled = !isSaving) {
+                                    customHue = ALARM_COLOR_HUES[index]
+                                    selectedPresetIndex = index
+                                },
                             contentAlignment = Alignment.Center,
                         ) {
                             Box(
